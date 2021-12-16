@@ -3,6 +3,7 @@ Pod::Spec.new do |spec|
   spec.version      = "1.0.0"
   spec.summary      = "Agora Extension Apps."
   spec.description  = "Agora Native Extension Apps."
+  
   spec.homepage     = "https://docs.agora.io/en/agora-class/landing-page?platform=iOS"
   spec.license      = { "type" => "Copyright", "text" => "Copyright 2020 agora.io. All rights reserved." }
   spec.author       = { "Lyy" => "liuyuanyuan02@agora.io" }
@@ -16,8 +17,9 @@ Pod::Spec.new do |spec|
   spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64', 'DEFINES_MODULE' => 'YES' }
   spec.pod_target_xcconfig = { 'VALID_ARCHS' => 'arm64 armv7 x86_64' }
   spec.user_target_xcconfig = { 'VALID_ARCHS' => 'arm64 armv7 x86_64' }
+  spec.module_map = 'AgoraExtApps.modulemap'
 
-  spec.source_files  = "ExtApps/**/*.{h,m,swift}", "AnswerSheetExtApp/**/*.{h,m,swift}", "CountDownExtApp/*.{h,m,swift}"
+  spec.source_files  = "ExtApps/**/*.{h,m,swift}","ExtApps/*.{h,m,swift}","*.{h,m,swift}", "AnswerSheetExtApp/**/*.{h,m,swift}", "CountDownExtApp/*.{h,m,swift}"
   
   spec.dependency "Armin"
   spec.dependency "Masonry"

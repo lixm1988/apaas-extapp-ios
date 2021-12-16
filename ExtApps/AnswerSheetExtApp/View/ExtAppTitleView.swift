@@ -6,8 +6,8 @@
 //
 
 import UIKit
-import AgoraUIBaseViews
 import SwifterSwift
+import AgoraUIBaseViews
 
 class ExtAppTitleView: UIView {
     

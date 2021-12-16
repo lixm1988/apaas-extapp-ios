@@ -7,6 +7,7 @@
 //
 
 #import "CountDownExtApp.h"
+#import <AgoraExtApps/AgoraExtApps-Swift.h>
 @import AgoraUIBaseViews;
 
 typedef enum : NSInteger {

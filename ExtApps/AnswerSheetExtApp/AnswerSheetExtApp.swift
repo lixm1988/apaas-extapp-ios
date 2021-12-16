@@ -7,6 +7,7 @@
 
 import UIKit
 import Masonry
+import AgoraExtApp
 
 class AnswerSheetModel: Decodable {
     var answer: [String] = [String]()
@@ -39,15 +40,15 @@ class AnswerSheetItemModel: Decodable {
     }
 }
 
-class AnswerSheetExtApp: AgoraBaseExtApp {
+@objc public class AnswerSheetExtApp: AgoraBaseExtApp {
     
     var sheetView: UIView?
     
-    override func extAppWillUnload() {
+    public override func extAppWillUnload() {
         super.extAppWillUnload()
     }
     
-    override func extAppDidLoad(_ context: AgoraExtAppContext) {
+    public override func extAppDidLoad(_ context: AgoraExtAppContext) {
         super.extAppDidLoad(context)
         if localUserInfo.userRole == "teacher" && context.properties.isEmpty {
             let v = self.setupSheetViewUse(cls: AnswerSheetSetupView.self)
@@ -55,7 +56,7 @@ class AnswerSheetExtApp: AgoraBaseExtApp {
         }
     }
     
-    override func propertiesDidUpdate(_ properties: [AnyHashable : Any]) {
+    public override func propertiesDidUpdate(_ properties: [AnyHashable : Any]) {
         super.propertiesDidUpdate(properties)
         guard let data = try? JSONSerialization.data(withJSONObject: properties, options: []),
               let model = try? JSONDecoder().decode(AnswerSheetModel.self, from: data) else {
