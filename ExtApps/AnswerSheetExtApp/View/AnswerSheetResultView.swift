@@ -109,7 +109,7 @@ private extension AnswerSheetResultView {
         listContentView.backgroundColor = .white
         listContentView.layer.cornerRadius = 4
         listContentView.layer.borderWidth = 1
-        listContentView.layer.borderColor = UIColor(hex: 0xEEEEF7).cgColor
+        listContentView.layer.borderColor = UIColor(hex: 0xEEEEF7)!.cgColor
         listContentView.clipsToBounds = true
         contentView.addSubview(listContentView)
         
@@ -201,8 +201,8 @@ private extension AnswerSheetResultView {
         restartButton.addTarget(self,
                                 action: #selector(onClickRestart(_:)),
                                 for: .touchUpInside)
-        let onImage = UIImage(color: UIColor(hex: 0x357BF6), size: CGSize(width: 1, height: 1))
-        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF), size: CGSize(width: 1, height: 1))
+        let onImage = UIImage(color: UIColor(hex: 0x357BF6)!, size: CGSize(width: 1, height: 1))
+        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
         restartButton.setBackgroundImage(onImage, for: .normal)
         restartButton.setBackgroundImage(offImage, for: .selected)
         restartButton.setTitle(NSLocalizedString("answer_sheet_restart", comment: ""),

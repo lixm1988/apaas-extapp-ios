@@ -36,7 +36,7 @@ import AgoraUIBaseViews
     private var totalTime: NSInteger = 0 {
         didSet {
             timeArr.forEach { group in
-                group.turnColor(color: (totalTime <= 3) ? .red : UIColor(hexString: "4D6277"))
+                group.turnColor(color: (totalTime <= 3) ? .red : UIColor(hexString: "4D6277")!)
             }
             let newTimeStrArr = totalTime.secondsToTimeStrArr()
             for i in 0..<timeArr.count {

@@ -181,7 +181,7 @@ private extension AnswerSheetSetupView {
         collectionView.backgroundColor = .white
         collectionView.layer.cornerRadius = 4
         collectionView.layer.borderWidth = 1
-        collectionView.layer.borderColor = UIColor(hex: 0xEEEEF7).cgColor
+        collectionView.layer.borderColor = UIColor(hex: 0xEEEEF7)!.cgColor
         collectionView.clipsToBounds = true
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.bounces = false
@@ -195,8 +195,8 @@ private extension AnswerSheetSetupView {
         startButton.titleLabel?.font = UIFont.systemFont(ofSize: 13)
         startButton.clipsToBounds = true
         startButton.addTarget(self, action: #selector(onClickStart(_:)), for: .touchUpInside)
-        let onImage = UIImage(color: UIColor(hex: 0x357BF6), size: CGSize(width: 1, height: 1))
-        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF), size: CGSize(width: 1, height: 1))
+        let onImage = UIImage(color: UIColor(hex: 0x357BF6)!, size: CGSize(width: 1, height: 1))
+        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
         startButton.setBackgroundImage(onImage, for: .normal)
         startButton.setBackgroundImage(offImage, for: .selected)
         startButton.setTitle(NSLocalizedString("answer_sheet_begin", comment: ""),
@@ -206,7 +206,7 @@ private extension AnswerSheetSetupView {
         plusButton = UIButton(type: .custom)
         plusButton.layer.cornerRadius = 15
         plusButton.layer.borderWidth = 1
-        plusButton.layer.borderColor = UIColor(hex: 0xEEEEF7).cgColor
+        plusButton.layer.borderColor = UIColor(hex: 0xEEEEF7)!.cgColor
         plusButton.addTarget(self, action: #selector(onClickAdd(_:)), for: .touchUpInside)
         plusButton.setTitle("+", for: .normal)
         plusButton.setTitleColor(UIColor(hex: 0x7B88A0), for: .normal)
@@ -215,7 +215,7 @@ private extension AnswerSheetSetupView {
         minusButton = UIButton(type: .custom)
         minusButton.layer.cornerRadius = 15
         minusButton.layer.borderWidth = 1
-        minusButton.layer.borderColor = UIColor(hex: 0xEEEEF7).cgColor
+        minusButton.layer.borderColor = UIColor(hex: 0xEEEEF7)!.cgColor
         minusButton.addTarget(self, action: #selector(onClickMinus(_:)), for: .touchUpInside)
         minusButton.setTitle("-", for: .normal)
         minusButton.setTitleColor(UIColor(hex: 0x7B88A0), for: .normal)

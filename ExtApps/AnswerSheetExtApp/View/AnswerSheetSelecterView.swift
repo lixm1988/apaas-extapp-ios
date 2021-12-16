@@ -213,8 +213,8 @@ private extension AnswerSheetSelecterView {
         submitButton.clipsToBounds = true
         submitButton.setTitle(NSLocalizedString("answer_sheet_submit_answer", comment: ""),
                               for: .normal)
-        let onImage = UIImage(color: UIColor(hex: 0x357BF6), size: CGSize(width: 1, height: 1))
-        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF), size: CGSize(width: 1, height: 1))
+        let onImage = UIImage(color: UIColor(hex: 0x357BF6)!, size: CGSize(width: 1, height: 1))
+        let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
         submitButton.setBackgroundImage(onImage, for: .normal)
         submitButton.setBackgroundImage(offImage, for: .selected)
         submitButton.addTarget(self, action: #selector(onClickSubmit(_:)), for: .touchUpInside)

@@ -7,7 +7,6 @@
 //
 
 #import "CountDownExtApp.h"
-#import "AgoraCloudClass-Swift.h"
 @import AgoraUIBaseViews;
 
 typedef enum : NSInteger {
@@ -52,7 +51,7 @@ typedef enum : NSInteger {
 - (void)initView {
     [self.view setUserInteractionEnabled:YES];
     self.view.backgroundColor = UIColor.clearColor;
-
+    
     CountDownWrapper *wrapper = [[CountDownWrapper alloc] init];
     AgoraBaseUIView *containerView = [wrapper getViewWithDelegate:self];
     self.countDown = [wrapper getCountDwon];
