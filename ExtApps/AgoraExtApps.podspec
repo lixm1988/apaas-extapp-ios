@@ -25,6 +25,7 @@ Pod::Spec.new do |spec|
   spec.dependency "AgoraExtApp"
   spec.dependency "SwifterSwift"
   spec.dependency "AgoraUIBaseViews"
+  spec.dependency "AgoraUIEduBaseViews"
 
   spec.subspec 'Resources' do |ss|
       ss.resource_bundles = {
