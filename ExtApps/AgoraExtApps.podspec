@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-  spec.name         = "AgoraExtApps.podspec"
+  spec.name         = "AgoraExtApps"
   spec.version      = "1.0.0"
   spec.summary      = "Agora Extension Apps."
   spec.description  = "Agora Native Extension Apps."
@@ -30,8 +30,8 @@ Pod::Spec.new do |spec|
       ss.resource_bundles = {
         'AgoraExtApps' => ["AgoraResources/*/*.{strings}", 
                            "*.xcassets",
-                           "Widgets/AgoraWidgets/AgoraResources/*/*.{strings}", 
-                           "Widgets/AgoraWidgets/*.xcassets"]
+                           "ExtApps/AgoraResources/*/*.{strings}",
+                           "ExtApps/*.xcassets"]
       }
   end
 end
