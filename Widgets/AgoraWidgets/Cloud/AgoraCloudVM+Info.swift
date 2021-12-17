@@ -14,7 +14,7 @@ extension AgoraCloudVM {
     
     struct Info: Equatable {
         let viewInfo: AgoraCloudListView.Info
-        let courseware: AgoraEduContextCourseware
+        let courseware: AgoraCloudCourseware
         
         init(fileItem: CloudServerApi.FileItem) {
             let resourceName = fileItem.resourceName
@@ -24,16 +24,16 @@ extension AgoraCloudVM {
             let ext = fileItem.ext
             let size = fileItem.size
             let updateTime = fileItem.updateTime
-            let scenes = fileItem.taskProgress.convertedFileList.map { conFile -> AgoraEduContextWhiteScene in
-                let ppt = AgoraEduContextWhitePptPage(src: conFile.ppt.src,
+            let scenes = fileItem.taskProgress.convertedFileList.map { conFile -> AgoraCloudWhiteScene in
+                let ppt = AgoraCloudWhitePptPage(src: conFile.ppt.src,
                                                       width: conFile.ppt.width,
                                                       height: conFile.ppt.height,
                                                       previewURL: conFile.ppt.preview)
-                return AgoraEduContextWhiteScene(name: conFile.name,
+                return AgoraCloudWhiteScene(name: conFile.name,
                                                  ppt: ppt)
             }
             
-            self.courseware = AgoraEduContextCourseware(resourceName: resourceName,
+            self.courseware = AgoraCloudCourseware(resourceName: resourceName,
                                                         resourceUuid: resourceUuid,
                                                         scenePath: scenePath,
                                                         resourceURL: resourceURL,
@@ -44,7 +44,7 @@ extension AgoraCloudVM {
             self.viewInfo = AgoraCloudListView.Info(fileItem: fileItem)
         }
         
-        init(courseware: AgoraEduContextCourseware) {
+        init(courseware: AgoraCloudCourseware) {
             self.courseware = courseware
             self.viewInfo = AgoraCloudListView.Info(courseware: courseware)
         }
@@ -71,7 +71,7 @@ extension AgoraCloudListView.Info {
         self.timeString = timeString
     }
     
-    init(courseware: AgoraEduContextCourseware) {
+    init(courseware: AgoraCloudCourseware) {
         let imageName = AgoraCloudListView.Info.imageName(ext: "ext")
         let name = courseware.resourceName
         let sizeString = courseware.size.toDataSizeUnitString
