@@ -232,8 +232,8 @@ extension UIColor {
                     green: &green,
                     blue: &blue,
                     alpha: &alpha)
-        return [NSNumber(value: Int(red)),
-                NSNumber(value: Int(green)),
-                NSNumber(value: Int(blue))]
+        return [NSNumber(value: Int(red * 255)),
+                NSNumber(value: Int(green * 255)),
+                NSNumber(value: Int(blue * 255))]
     }
 }
