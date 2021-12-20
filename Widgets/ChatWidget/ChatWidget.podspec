@@ -15,32 +15,24 @@ Pod::Spec.new do |s|
     
     s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES','EXCLUDED_ARCHS[sdk=iphonesimulator*]'=>'i386,arm64','VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
     
-    s.subspec 'BINARY' do |binary|
-      binary.resources = 'ChatWidget/ChatWidget.bundle'
-      binary.source_files = 'ChatWidget/**/*.{h,m,strings}'
-      binary.public_header_files = [
-        'ChatWidget/Main/ChatWidget.h',
-      ]
+    s.resources = 'ChatWidget/ChatWidget.bundle'
+    s.source_files = 'ChatWidget/**/*.{h,m,strings}'
+    s.public_header_files = [
+      'ChatWidget/Main/ChatWidget.h',
+    ]
 
-      binary.dependency 'Masonry'
-      binary.dependency 'HyphenateChat'
-      binary.dependency 'SDWebImage'
-      binary.dependency 'WHToast'
+    s.dependency 'Masonry'
+    s.dependency 'HyphenateChat'
+    s.dependency 'SDWebImage'
+    s.dependency 'WHToast'
+
+    s.subspec 'BINARY' do |binary|
       binary.vendored_frameworks = "../Products/Libs/AgoraWidget.framewrok"
       binary.xcconfig = { 'FRAMEWORK_SEARCH_PATHS' => ['$(SRCROOT)/../../Products/Libs/'] }
     end
     
     s.subspec 'SOURCE' do |source|
-      source.dependency 'Masonry'
-      source.dependency 'HyphenateChat'
-      source.dependency 'SDWebImage'
-      source.dependency 'WHToast'
       source.dependency "AgoraWidget"
-      source.resources = 'ChatWidget/ChatWidget.bundle'
-      source.source_files = 'ChatWidget/**/*.{h,m,strings}'
-      source.public_header_files = [
-        'ChatWidget/Main/ChatWidget.h',
-      ]
     end
 
     s.default_subspec = 'SOURCE'
