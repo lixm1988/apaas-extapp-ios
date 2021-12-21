@@ -15,3 +15,8 @@ ChatSilencedPlaceholderText = "Banned to chat";
 ChatDisableToastText = "Turn on mute mode";
 ChatEnableToastText = "Turn off mute mode";
 ChatDisableText = "mute chat";
+
+rtm_role_student = "Student";
+rtm_role_teacher = "Teacher";
+rtm_title_chat = "Chat";
+rtm_no_message = "No Message";
