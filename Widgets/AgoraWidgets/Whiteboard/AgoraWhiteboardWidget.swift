@@ -187,20 +187,21 @@ extension AgoraWhiteboardWidget {
         log(.info,
             log: "[Whiteboard widget] start join")
         sdk.joinRoom(with: roomConfig,
-                     callbacks: self) {[weak self] (success, room, error) in
-            guard let `self` = self,
-                  success,
-                  error == nil,
-                  let whiteRoom = room else {
-                
+                     callbacks: self) { [weak self] (success, room, error) in
+            guard let `self` = self else {
                 DispatchQueue.main.async {
                     AgoraLoading.hide()
                 }
-                
-                self?.log(.error,
+    
+                return
+            }
+            
+            guard success, error == nil ,
+                  let whiteRoom = room else {
+                self.log(.error,
                           log: "[Whiteboard widget] join room error :\(error?.localizedDescription)")
-                self?.dt.reconnectTime += 2
-                self?.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
+                self.dt.reconnectTime += 2
+                self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
             }
             
@@ -210,8 +211,6 @@ extension AgoraWhiteboardWidget {
             
             self.log(.info,
                       log: "[Whiteboard widget] join room success")
-            
-
             
             self.room = whiteRoom
             self.initRoomState(state: whiteRoom.state)
