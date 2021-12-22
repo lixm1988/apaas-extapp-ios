@@ -176,8 +176,9 @@ extension AgoraWhiteboardWidget {
     }
     
     func joinWhiteboard() {
+        let ratio = view.bounds.height / view.bounds.width
         guard let sdk = whiteSDK,
-              let roomConfig = dt.getWhiteRoomConfigToJoin() else {
+              let roomConfig = dt.getWhiteRoomConfigToJoin(ratio: ratio) else {
             return
         }
         

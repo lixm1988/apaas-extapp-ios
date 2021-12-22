@@ -211,7 +211,7 @@ class AgoraWhiteboardWidgetDT {
         return config
     }
     
-    func getWhiteRoomConfigToJoin() -> WhiteRoomConfig? {
+    func getWhiteRoomConfigToJoin(ratio: CGFloat) -> WhiteRoomConfig? {
         guard let props = properties else {
             return nil
         }
@@ -224,6 +224,7 @@ class AgoraWhiteboardWidgetDT {
         
         let windowParams = WhiteWindowParams()
         windowParams.chessboard = false
+        windowParams.containerSizeRatio = NSNumber.init(value: Float(ratio))
         windowParams.collectorStyles = extra.collectorStyles
         
         config.windowParams = windowParams
