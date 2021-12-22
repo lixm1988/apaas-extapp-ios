@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AgoraUIBaseViews
 
 protocol AnswerSheetResultViewDelegate: NSObjectProtocol {
     /** 统计面板点击了结束答题*/
@@ -102,7 +103,7 @@ private extension AnswerSheetResultView {
         addSubview(contentView)
         
         titleView = ExtAppTitleView(frame: .zero)
-        titleView.titleLabel.text = NSLocalizedString("answer_sheet_title", comment: "")
+        titleView.titleLabel.text = "answer_sheet_title".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(titleView)
         
         listContentView = UIView()
@@ -124,21 +125,21 @@ private extension AnswerSheetResultView {
         nameLabel.textAlignment = .center
         nameLabel.font = UIFont.systemFont(ofSize: 12)
         nameLabel.textColor = UIColor(hex: 0x7B88A0)
-        nameLabel.text = NSLocalizedString("answer_sheet_student_name", comment: "")
+        nameLabel.text = "answer_sheet_student_name".ag_localizedIn("AgoraExtApps")
         itemsView.addArrangedSubview(nameLabel)
         
         let timeLabel = UILabel(frame: .zero)
         timeLabel.textAlignment = .center
         timeLabel.font = UIFont.systemFont(ofSize: 12)
         timeLabel.textColor = UIColor(hex: 0x7B88A0)
-        timeLabel.text = NSLocalizedString("answer_sheet_student_duration", comment: "")
+        timeLabel.text = "answer_sheet_student_duration".ag_localizedIn("AgoraExtApps")
         itemsView.addArrangedSubview(timeLabel)
         
         let resultLabel = UILabel(frame: .zero)
         resultLabel.textAlignment = .center
         resultLabel.font = UIFont.systemFont(ofSize: 12)
         resultLabel.textColor = UIColor(hex: 0x7B88A0)
-        resultLabel.text = NSLocalizedString("answer_sheet_student_answer", comment: "")
+        resultLabel.text = "answer_sheet_student_answer".ag_localizedIn("AgoraExtApps")
         itemsView.addArrangedSubview(resultLabel)
         
         tableView = UITableView.init(frame: .zero, style: .plain)
@@ -154,8 +155,7 @@ private extension AnswerSheetResultView {
         
         countTitleLabel = UILabel(frame: .zero)
         countTitleLabel.textAlignment = .center
-        countTitleLabel.text = NSLocalizedString("answer_sheet_member_count",
-                                                 comment: "")
+        countTitleLabel.text = "answer_sheet_member_count".ag_localizedIn("AgoraExtApps")
         countTitleLabel.font = UIFont.systemFont(ofSize: 13)
         countTitleLabel.textColor = UIColor(hex: 0x7B88A0)
         contentView.addSubview(countTitleLabel)
@@ -168,8 +168,7 @@ private extension AnswerSheetResultView {
         
         ratioTitleLabel = UILabel(frame: .zero)
         ratioTitleLabel.textAlignment = .center
-        ratioTitleLabel.text = NSLocalizedString("answer_sheet_ratio",
-                                                 comment: "")
+        ratioTitleLabel.text = "answer_sheet_ratio".ag_localizedIn("AgoraExtApps")
         ratioTitleLabel.font = UIFont.systemFont(ofSize: 13)
         ratioTitleLabel.textColor = UIColor(hex: 0x7B88A0)
         contentView.addSubview(ratioTitleLabel)
@@ -182,8 +181,7 @@ private extension AnswerSheetResultView {
         
         answerTitleLabel = UILabel(frame: .zero)
         answerTitleLabel.textAlignment = .center
-        answerTitleLabel.text = NSLocalizedString("answer_sheet_correct",
-                                                  comment: "")
+        answerTitleLabel.text = "answer_sheet_correct".ag_localizedIn("AgoraExtApps")
         answerTitleLabel.font = UIFont.systemFont(ofSize: 13)
         answerTitleLabel.textColor = UIColor(hex: 0x7B88A0)
         contentView.addSubview(answerTitleLabel)
@@ -205,7 +203,7 @@ private extension AnswerSheetResultView {
         let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
         restartButton.setBackgroundImage(onImage, for: .normal)
         restartButton.setBackgroundImage(offImage, for: .selected)
-        restartButton.setTitle(NSLocalizedString("answer_sheet_restart", comment: ""),
+        restartButton.setTitle("answer_sheet_restart".ag_localizedIn("AgoraExtApps"),
                              for: .normal)
         contentView.addSubview(restartButton)
     }

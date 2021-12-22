@@ -92,13 +92,13 @@ private extension AnswerSheetStudentResultView {
         addSubview(contentView)
         
         titleView = ExtAppTitleView(frame: .zero)
-        titleView.titleLabel.text = NSLocalizedString("answer_sheet_title", comment: "")
+        titleView.titleLabel.text = "answer_sheet_title".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(titleView)
         
         numTitleLabel = UILabel()
         numTitleLabel.font = UIFont.systemFont(ofSize: 13)
         numTitleLabel.textColor = UIColor(hex: 0x7B88A0)
-        numTitleLabel.text = NSLocalizedString("answer_sheet_member_count", comment: "")
+        numTitleLabel.text = "answer_sheet_member_count".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(numTitleLabel)
         
         numLabel = UILabel()
@@ -109,7 +109,7 @@ private extension AnswerSheetStudentResultView {
         ratioTitleLabel = UILabel()
         ratioTitleLabel.font = UIFont.systemFont(ofSize: 13)
         ratioTitleLabel.textColor = UIColor(hex: 0x7B88A0)
-        ratioTitleLabel.text = NSLocalizedString("answer_sheet_ratio", comment: "")
+        ratioTitleLabel.text = "answer_sheet_ratio".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(ratioTitleLabel)
         
         ratioLabel = UILabel()
@@ -120,7 +120,7 @@ private extension AnswerSheetStudentResultView {
         correctTitleLabel = UILabel()
         correctTitleLabel.font = UIFont.systemFont(ofSize: 13)
         correctTitleLabel.textColor = UIColor(hex: 0x7B88A0)
-        correctTitleLabel.text = NSLocalizedString("answer_sheet_correct", comment: "")
+        correctTitleLabel.text = "answer_sheet_correct".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(correctTitleLabel)
         
         correctLabel = UILabel()
@@ -131,7 +131,7 @@ private extension AnswerSheetStudentResultView {
         mineTitleLabel = UILabel()
         mineTitleLabel.font = UIFont.systemFont(ofSize: 13)
         mineTitleLabel.textColor = UIColor(hex: 0x7B88A0)
-        mineTitleLabel.text = NSLocalizedString("answer_sheet_mine", comment: "")
+        mineTitleLabel.text = "answer_sheet_mine".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(mineTitleLabel)
         
         mineLabel = UILabel()

@@ -23,3 +23,9 @@ answer_sheet_member_count = "Submission List:";
 answer_sheet_ratio = "Accuracy:";
 answer_sheet_correct = "The Correct Ansewer:";
 answer_sheet_mine = "My Answer:";
+
+// vote
+Vote_title = "Polling";
+Vote_submit = "Submit";
+Option_mul = "Multi-select";
+Option_sing = "Single";

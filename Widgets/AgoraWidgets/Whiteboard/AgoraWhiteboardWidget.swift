@@ -266,7 +266,10 @@ extension AgoraWhiteboardWidget {
                 }
 
                 self.dt.currentMemberState = member
-                room.setMemberState(member)
+                if room.isWritable {
+                    room.setMemberState(member)
+                }
+                
                 // 发送初始画笔状态的消息
                 var colorArr = Array<Int>()
                 member.strokeColor?.forEach { number in

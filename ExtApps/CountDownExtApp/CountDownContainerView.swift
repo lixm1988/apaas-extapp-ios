@@ -55,7 +55,7 @@ import AgoraUIBaseViews
         view.clipsToBounds = true
 
         let titleLabel = AgoraBaseUILabel()
-        titleLabel.text = NSLocalizedString("Countdown_title", comment: "")
+        titleLabel.text = "Countdown_title".ag_localizedIn("AgoraExtApps")
         titleLabel.textColor = .black
         titleLabel.font = UIFont.systemFont(ofSize: 14)
         
@@ -110,24 +110,23 @@ import AgoraUIBaseViews
         timer = DispatchSource.makeTimerSource(flags: [],
                                                queue: DispatchQueue.global())
         timer?.schedule(deadline: .now(),
-                       repeating: 1)
+                        repeating: 1)
         
         timer?.setEventHandler { [weak self] in
-            DispatchQueue.main.async {
-                if let `self` = self {
-                    if self.totalTime > 0 {
-                        self.totalTime -= 1
-                        self.delegate?.countDownUp(to: self.totalTime)
-                    } else {
-                        self.delegate?.countDownDidStop()
-                        self.timer?.cancel()
-                        self.timer = nil
-                    }
+            if let `self` = self {
+                if self.totalTime > 0 {
+                    self.totalTime -= 1
+                    self.delegate?.countDownUp(to: self.totalTime)
                 } else {
-                    self?.timer?.cancel()
-                    self?.timer = nil
+                    self.delegate?.countDownDidStop()
+                    self.timer?.cancel()
+                    self.timer = nil
                 }
+            } else {
+                self?.timer?.cancel()
+                self?.timer = nil
             }
+            
         }
         isSuspend = true
         

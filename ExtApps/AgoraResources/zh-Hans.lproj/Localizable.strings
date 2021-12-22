@@ -24,3 +24,9 @@ answer_sheet_member_count = "已答题人数：";
 answer_sheet_ratio = "正确率：";
 answer_sheet_correct = "正确答案：";
 answer_sheet_mine = "我的答案：";
+
+// vote
+Vote_title = "投票";
+Vote_submit = "投票";
+Option_mul = "多选";
+Option_sing = "单选";

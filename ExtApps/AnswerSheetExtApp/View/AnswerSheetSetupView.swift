@@ -104,7 +104,8 @@ extension AnswerSheetSetupView {
             let a = items[indesPath.row]
             answers.append(a)
         }
-        self.delegate?.onSubmitSetup(items: items, answers: answers)
+        self.delegate?.onSubmitSetup(items: items,
+                                     answers: answers)
     }
     
     @objc func onClickClose(_ sender: UIButton) {
@@ -112,13 +113,17 @@ extension AnswerSheetSetupView {
     }
 }
 // MARK: - UICollectionView Call Back
-extension AnswerSheetSetupView: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension AnswerSheetSetupView: UICollectionViewDelegateFlowLayout,
+                                UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView,
+                        numberOfItemsInSection section: Int) -> Int {
         return itemsCount
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withClass: AnswerSheetSelectCell.self, for: indexPath)
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withClass: AnswerSheetSelectCell.self,
+                                                      for: indexPath)
         if let c = UnicodeScalar(65 + indexPath.row) {
             cell.titleLabel.text = String(Character(c))
         }
@@ -126,7 +131,8 @@ extension AnswerSheetSetupView: UICollectionViewDelegateFlowLayout, UICollection
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView,
+                        didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
         if selected.contains(indexPath) {
             selected.removeAll(indexPath)
@@ -137,19 +143,27 @@ extension AnswerSheetSetupView: UICollectionViewDelegateFlowLayout, UICollection
         collectionView.reloadData()
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: kItemSize, height: kItemSize)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 20
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 10
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 20, left: 20, bottom: 0, right: 20)
     }
 }
@@ -170,7 +184,7 @@ private extension AnswerSheetSetupView {
         addSubview(contentView)
         
         titleView = ExtAppTitleView(frame: .zero)
-        titleView.titleLabel.text = NSLocalizedString("answer_sheet_title", comment: "")
+        titleView.titleLabel.text = "answer_sheet_title".ag_localizedIn("AgoraExtApps")
         titleView.closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
         contentView.addSubview(titleView)
         
@@ -199,7 +213,7 @@ private extension AnswerSheetSetupView {
         let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
         startButton.setBackgroundImage(onImage, for: .normal)
         startButton.setBackgroundImage(offImage, for: .selected)
-        startButton.setTitle(NSLocalizedString("answer_sheet_begin", comment: ""),
+        startButton.setTitle("answer_sheet_begin".ag_localizedIn("AgoraExtApps"),
                              for: .normal)
         contentView.addSubview(startButton)
         

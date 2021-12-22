@@ -23,11 +23,11 @@ public class SingleTimeView: AgoraBaseUIView {
     }()
     
     public func updateLabel(str: String,turnRed: Bool = false) {
-        strLabel.text = str
+        self.strLabel.text = str
     }
     
     public func turnColor(color: UIColor) {
-        strLabel.textColor = color
+        self.strLabel.textColor = color
     }
     
     override init(frame: CGRect) {

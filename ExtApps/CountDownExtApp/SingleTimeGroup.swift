@@ -23,12 +23,12 @@ import AgoraUIBaseViews
                 return
             }
             
-            bottomView.updateLabel(str: timeStr)
-            oriUp.updateLabel(str: oldValue)
-            oriDown.updateLabel(str: oldValue)
-            newDown.updateLabel(str: timeStr)
+            self.bottomView.updateLabel(str: self.timeStr)
+            self.oriUp.updateLabel(str: oldValue)
+            self.oriDown.updateLabel(str: oldValue)
+            self.newDown.updateLabel(str: self.timeStr)
+            self.rotation()
             
-            rotation()
         }
     }
     

@@ -19,7 +19,7 @@ Pod::Spec.new do |spec|
   spec.user_target_xcconfig = { 'VALID_ARCHS' => 'arm64 armv7 x86_64' }
   spec.module_map = 'AgoraExtApps.modulemap'
 
-  spec.source_files  = "ExtApps/**/*.{h,m,swift}","ExtApps/*.{h,m,swift}","*.{h,m,swift}", "AnswerSheetExtApp/**/*.{h,m,swift}", "CountDownExtApp/*.{h,m,swift}"
+  spec.source_files  = "ExtApps/**/*.{h,m,swift}","ExtApps/*.{h,m,swift}","*.{h,m,swift}", "AnswerSheetExtApp/**/*.{h,m,swift}", "CountDownExtApp/*.{h,m,swift}","VoteExtApp/*.{h,m,swift}"
   
   spec.dependency "Armin"
   spec.dependency "Masonry"

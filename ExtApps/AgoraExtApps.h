@@ -12,6 +12,7 @@
 
 #import <Foundation/Foundation.h>
 #import <AgoraExtApps/CountDownExtApp.h>
+#import <AgoraExtApps/VoteExtApp.h>
 
 
 FOUNDATION_EXPORT double AgoraExtAppsVersionNumber;

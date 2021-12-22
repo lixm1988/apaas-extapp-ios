@@ -77,7 +77,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         sendMessage(signal: .BoardPhaseChanged(phase.toWidget()))
         
         log(.info,
-            log: "Whiteboard phase: \(phase.strValue)")
+            log: "[Whiteboard widget] phase: \(phase.strValue)")
         if phase == .connected {
             AgoraLoading.hide()
         }
@@ -90,13 +90,13 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
 extension AgoraWhiteboardWidget: WhiteCommonCallbackDelegate {
     public func throwError(_ error: Error) {
         log(.error,
-            log: error.localizedDescription)
+            log: "[Whiteboard widget] \(error.localizedDescription)")
     }
     
     public func logger(_ dict: [AnyHashable : Any]) {
         // {funName: string, message: id} funName 为对应 API 的名称
         log(.info,
-            log: dict.description)
+            log: "[Whiteboard widget] \(dict.description)")
     }
 }
 

@@ -41,6 +41,7 @@ typedef enum : NSInteger {
 #pragma mark - Life cycle
 - (void)extAppDidLoad:(AgoraExtAppContext *)context {
     [self initView];
+    
     [self initData:context.properties];
 }
 
@@ -109,7 +110,7 @@ typedef enum : NSInteger {
 #pragma mark - Timer
 - (void)handleTimer {
     [self.view setHidden:NO];
-    
+
     NSString *remoteStateStr = (NSString *)self.properties[@"state"];
     NSInteger remoteState = remoteStateStr.integerValue;
     if (remoteState == 0) {

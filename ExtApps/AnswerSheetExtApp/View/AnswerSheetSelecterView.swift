@@ -84,13 +84,13 @@ class AnswerSheetSelecterView: UIView {
         self.reloadButtonState()
         let count = Double(model.items.count)
         let row = ceil(count / 4.0)
-        collectionView.mas_remakeConstraints { make in
-            make?.top.equalTo()(titleView.mas_bottom)?.offset()(20)
-            make?.left.equalTo()(16)
-            make?.right.equalTo()(-16)
-            make?.height.equalTo()(row * (40 + 16))
-        }
-        self.collectionView.reloadData()
+            self.collectionView.mas_remakeConstraints { make in
+                make?.top.equalTo()(self.titleView.mas_bottom)?.offset()(20)
+                make?.left.equalTo()(16)
+                make?.right.equalTo()(-16)
+                make?.height.equalTo()(row * (40 + 16))
+            }
+            self.collectionView.reloadData()
     }
 }
 // MARK: - Private
@@ -130,12 +130,15 @@ private extension AnswerSheetSelecterView {
     }
 }
 // MARK: - UICollectionView Call Back
-extension AnswerSheetSelecterView: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension AnswerSheetSelecterView: UICollectionViewDataSource,
+                                   UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView,
+                        numberOfItemsInSection section: Int) -> Int {
         return model?.items.count ?? 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(_ collectionView: UICollectionView,
+                        cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withClass: AnswerSheetSelectCell.self, for: indexPath)
         let s = model?.items[indexPath.row] ?? ""
         cell.titleLabel.text = s
@@ -143,7 +146,8 @@ extension AnswerSheetSelecterView: UICollectionViewDataSource, UICollectionViewD
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView,
+                        didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
         guard self.isLocked == false else {
             return
@@ -162,15 +166,21 @@ extension AnswerSheetSelecterView: UICollectionViewDataSource, UICollectionViewD
         self.reloadButtonState()
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: kItemSize, height: kItemSize)
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 16
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 10
     }
 }
@@ -191,7 +201,7 @@ private extension AnswerSheetSelecterView {
         addSubview(contentView)
         
         titleView = ExtAppTitleView(frame: .zero)
-        titleView.titleLabel.text = NSLocalizedString("answer_sheet_title", comment: "")
+        titleView.titleLabel.text = "answer_sheet_title".ag_localizedIn("AgoraExtApps")
         contentView.addSubview(titleView)
         
         let layout = UICollectionViewFlowLayout()
@@ -211,7 +221,7 @@ private extension AnswerSheetSelecterView {
         submitButton.layer.cornerRadius = 15
         submitButton.titleLabel?.font = UIFont.systemFont(ofSize: 13)
         submitButton.clipsToBounds = true
-        submitButton.setTitle(NSLocalizedString("answer_sheet_submit_answer", comment: ""),
+        submitButton.setTitle("answer_sheet_submit_answer".ag_localizedIn("AgoraExtApps"),
                               for: .normal)
         let onImage = UIImage(color: UIColor(hex: 0x357BF6)!, size: CGSize(width: 1, height: 1))
         let offImage = UIImage(color: UIColor(hex: 0xC0D6FF)!, size: CGSize(width: 1, height: 1))
@@ -227,7 +237,7 @@ private extension AnswerSheetSelecterView {
         resetButton.layer.borderColor = UIColor(hex: 0x357BF6)?.cgColor
         resetButton.titleLabel?.font = UIFont.systemFont(ofSize: 13)
         resetButton.clipsToBounds = true
-        resetButton.setTitle(NSLocalizedString("answer_sheet_change_answer", comment: ""),
+        resetButton.setTitle("answer_sheet_change_answer".ag_localizedIn("AgoraExtApps"),
                               for: .normal)
         resetButton.setTitleColor(UIColor(hex: 0x357BF6), for: .normal)
         resetButton.addTarget(self, action: #selector(onClickReset(_:)), for: .touchUpInside)
