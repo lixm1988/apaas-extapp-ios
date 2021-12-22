@@ -39,11 +39,13 @@
         make.centerX.equalTo(self);
         make.top.equalTo(self);
         make.width.equalTo(@80);
-        make.height.equalTo(@72);
+        make.height.equalTo(@80);
     }];
     
     self.nilMsgLable = [[UILabel alloc] init];
     self.nilMsgLable.text = [ChatWidget LocalizedString:@"ChatEmptyText"];
+    self.nilMsgLable.font = [UIFont systemFontOfSize:12];
+    self.nilMsgLable.textColor = [UIColor colorWithRed:125/255.0 green:135/255.0 blue:152/255.0 alpha:1.0];
     self.nilMsgLable.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.nilMsgLable];
     [self.nilMsgLable mas_makeConstraints:^(MASConstraintMaker *make) {

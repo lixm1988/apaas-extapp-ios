@@ -35,10 +35,12 @@
         make.centerX.equalTo(self);
         make.top.equalTo(self);
         make.width.equalTo(@80);
-        make.height.equalTo(@72);
+        make.height.equalTo(@80);
     }];
     
     self.nilAnnouncementLable = [[UILabel alloc] init];
+    self.nilAnnouncementLable.font = [UIFont systemFontOfSize:12];
+    self.nilAnnouncementLable.textColor = [UIColor colorWithRed:125/255.0 green:135/255.0 blue:152/255.0 alpha:1.0];
     self.nilAnnouncementLable.text = [ChatWidget LocalizedString:@"ChatNoAnnouncement"];
     self.nilAnnouncementLable.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.nilAnnouncementLable];

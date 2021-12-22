@@ -18,7 +18,7 @@ class AgoraRtmIMTopBar: UIView {
         backgroundColor = .white
         
         titleLabel = UILabel()
-        titleLabel.textColor = UIColor(rgb: 0x191919)
+        titleLabel.textColor = UIColor(hex: 0x191919)
         titleLabel.text = "rtm_title_chat".ag_localizedIn("AgoraWidgets")
         titleLabel.font = UIFont.systemFont(ofSize: 13)
         addSubview(titleLabel)
@@ -29,7 +29,7 @@ class AgoraRtmIMTopBar: UIView {
         }
         
         lineView = UIView()
-        lineView.backgroundColor = UIColor(rgb: 0xECECF1)
+        lineView.backgroundColor = UIColor(hex: 0xECECF1)
         addSubview(lineView)
         lineView.mas_makeConstraints { make in
             make?.left.right().bottom().equalTo()(0)

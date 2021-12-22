@@ -27,9 +27,9 @@ class AgoraCloudHeaderView: AgoraBaseUIView {
     }
     
     private func setup() {
-        backgroundColor = UIColor(rgb: 0xF9F9FC)
-        let textColor = UIColor(rgb: 0x191919)
-        let lineColor = UIColor(rgb: 0xEEEEF7)
+        backgroundColor = UIColor(hex: 0xF9F9FC)
+        let textColor = UIColor(hex: 0x191919)
+        let lineColor = UIColor(hex: 0xEEEEF7)
         
         nameLabel.text = "文件名"
         sizeLabel.text = "大小"

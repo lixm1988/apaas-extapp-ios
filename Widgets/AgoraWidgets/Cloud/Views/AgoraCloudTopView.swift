@@ -47,11 +47,11 @@ class AgoraCloudTopView: AgoraBaseUIView {
     
     private func setup() {
         /// 上半部分
-        contentView1.backgroundColor = UIColor(rgb: 0xF9F9FC)
-        let buttonNormalColor = UIColor(rgb: 0x586376)
-        let buttonSelectedColor = UIColor(rgb: 0x191919)
-        let indicateViewColor = UIColor(rgb: 0x0073FF)
-        let lineColor = UIColor(rgb: 0xEEEEF7)
+        contentView1.backgroundColor = UIColor(hex: 0xF9F9FC)
+        let buttonNormalColor = UIColor(hex: 0x586376)
+        let buttonSelectedColor = UIColor(hex: 0x191919)
+        let indicateViewColor = UIColor(hex: 0x0073FF)
+        let lineColor = UIColor(hex: 0xEEEEF7)
         
         publicAreaButton.setTitle("公共资源",
                                   for: .normal)
@@ -97,7 +97,7 @@ class AgoraCloudTopView: AgoraBaseUIView {
         contentView2.backgroundColor = .white
         let refreshImage = GetWidgetImage(object: self,
                                           "icon_refresh")
-        let textColor = UIColor(rgb: 0x191919)
+        let textColor = UIColor(hex: 0x191919)
         
         refreshButton.setImage(refreshImage,
                                for: .normal)

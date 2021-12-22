@@ -90,8 +90,8 @@ extension AnswerSheetResultView: UITableViewDelegate, UITableViewDataSource {
 private extension AnswerSheetResultView {
     func createViews() {
         backgroundColor = .clear
-        layer.shadowColor = UIColor(rgb: 0x2F4192,
-                                    alpha: 0.15).cgColor
+        layer.shadowColor = UIColor(hex: 0x2F4192,
+                                    transparency: 0.15)?.cgColor
         layer.shadowOffset = CGSize(width: 0,
                                     height: 2)
         layer.shadowOpacity = 1

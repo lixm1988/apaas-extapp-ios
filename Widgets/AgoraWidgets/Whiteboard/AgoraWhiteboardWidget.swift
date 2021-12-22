@@ -261,7 +261,7 @@ extension AgoraWhiteboardWidget {
                 if !joinedFlag {
                     member.currentApplianceName = WhiteApplianceNameKey.ApplianceSelector
                     member.strokeWidth = NSNumber(16)
-                    member.strokeColor = UIColor(rgb: 0x0073FF).getRGBAArr()
+                    member.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
                     member.textSize = NSNumber(18)
                 }
 

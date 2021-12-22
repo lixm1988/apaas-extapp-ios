@@ -37,9 +37,9 @@ class AgoraCloudCell: AgoraBaseUITableViewCell {
         sizeLabel.text = "大小"
         timeLabel.text = "修改时间"
         
-        nameLabel.textColor = UIColor(rgb: 0x191919)
-        sizeLabel.textColor = UIColor(rgb: 0x586376)
-        timeLabel.textColor = UIColor(rgb: 0x586376)
+        nameLabel.textColor = UIColor(hex: 0x191919)
+        sizeLabel.textColor = UIColor(hex: 0x586376)
+        timeLabel.textColor = UIColor(hex: 0x586376)
         
         
         nameLabel.font = .systemFont(ofSize: 13)
