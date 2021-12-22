@@ -63,7 +63,7 @@ struct InitCondition {
         
         initCondition.needInit = true
 
-        if let wbProperties = widgetInfo.properties?.toObj(AgoraWhiteboardProperties.self) {
+        if let wbProperties = widgetInfo.roomProperties?.toObj(AgoraWhiteboardProperties.self) {
             dt.properties = wbProperties
         }
     }
@@ -87,20 +87,20 @@ struct InitCondition {
         }
     }
     
-    public override func onPropertiesUpdated(_ properties: [String : Any],
-                                             cause: [String : Any]?,
-                                             keyPaths: [String]) {
+    public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
+                                                       cause: [String : Any]?,
+                                                       keyPaths: [String]) {
         guard let wbProperties = properties.toObj(AgoraWhiteboardProperties.self) else {
             return
         }
         log(.info,
-            log: "[Whiteboard widget] onPropertiesUpdated:\(properties)")
+            log: "[Whiteboard widget] onWidgetRoomPropertiesUpdated:\(properties)")
         dt.properties = wbProperties
     }
     
-    public override func onPropertiesDeleted(_ properties: [String : Any]?,
-                                             cause: [String : Any]?,
-                                             keyPaths: [String]) {
+    public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
+                                                       cause: [String : Any]?,
+                                                       keyPaths: [String]) {
         guard let wbProperties = properties?.toObj(AgoraWhiteboardProperties.self) else {
             return
         }

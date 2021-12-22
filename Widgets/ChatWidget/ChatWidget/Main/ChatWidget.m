@@ -87,9 +87,8 @@ static const NSString* kChatRoomId = @"chatroomId";
 //@property (nonatomic,strong) UIButton* miniButton;
 @property (nonatomic, strong) CustomBadgeView* badgeView;
 @property (nonatomic, strong) ChatWidgetLaunchData *launchData;
-
 @property (nonatomic, assign) CGFloat topHeight;
-
+@property (nonatomic, assign) BOOL launchedFlag;
 @end
 
 @implementation ChatWidget
@@ -100,8 +99,9 @@ static const NSString* kChatRoomId = @"chatroomId";
         self.view.delegate = self;
         self.launchData = [[ChatWidgetLaunchData alloc] init];
         self.topHeight = TOP_HEIGHT;
+        self.launchedFlag = NO;
         [self initViews];
-        [self initData:info.properties];
+        [self initData:info.roomProperties];
     }
     
     return self;
@@ -213,25 +213,30 @@ static const NSString* kChatRoomId = @"chatroomId";
     
     // key
     NSString *appKey = nil;
-    NSString *password = properties[@"userId"];
-    
+    NSString *password = self.info.localUserProperties[@"userId"];
+    NSString *orgName = nil;
     // room
     NSString *chatRoomId = nil;
     NSString *roomUuid = self.info.roomInfo.roomUuid;
     
     // user
-    NSString *avatarurl = nil;
-    NSString *userUuid = properties[@"userId"];
+    NSString *avatarurl = properties[@"avatarurl"];
+    NSString *userUuid = self.info.localUserProperties[@"userId"];
     NSString *userName = self.info.localUserInfo.userName;
     
     if (widgetExtraProps) {
         appKey = widgetExtraProps[@"appKey"];
         chatRoomId = widgetExtraProps[@"chatRoomId"];
+        orgName = widgetExtraProps[@"orgName"];
     }
         
     // key
     if (appKey.length > 0) {
         self.launchData.appKey = appKey;
+    }
+    
+    if (orgName.length > 0) {
+        self.launchData.orgName = orgName;
     }
     
     if (password.length > 0) {
@@ -260,10 +265,11 @@ static const NSString* kChatRoomId = @"chatroomId";
         self.launchData.userName = userName;
     }
     
-    if (![self.launchData checkIsLegal]) {
+    if (![self.launchData checkIsLegal] || self.launchedFlag) {
         return;
     }
     
+    self.launchedFlag = YES;
     [self launch];
 }
 
