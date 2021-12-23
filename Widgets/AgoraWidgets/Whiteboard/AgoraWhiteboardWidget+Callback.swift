@@ -48,7 +48,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
             }
             
             // 2. scenePath 判断
-            let newScenePath = sceneState.scenePath.split(separator: "/")[1]
+            let newScenePath = sceneState.scenePath.split(separator: "/")[0]
             if "/\(newScenePath)" != dt.scenePath {
                 dt.scenePath = "/\(newScenePath)"
             }
@@ -77,7 +77,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         sendMessage(signal: .BoardPhaseChanged(phase.toWidget()))
         
         log(.info,
-            log: "[Whiteboard widget] phase: \(phase.strValue)")
+            log: "phase: \(phase.strValue)")
         if phase == .connected {
             AgoraLoading.hide()
         }
@@ -90,13 +90,13 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
 extension AgoraWhiteboardWidget: WhiteCommonCallbackDelegate {
     public func throwError(_ error: Error) {
         log(.error,
-            log: "[Whiteboard widget] \(error.localizedDescription)")
+            log: "\(error.localizedDescription)")
     }
     
     public func logger(_ dict: [AnyHashable : Any]) {
         // {funName: string, message: id} funName 为对应 API 的名称
         log(.info,
-            log: "[Whiteboard widget] \(dict.description)")
+            log: "\(dict.description)")
     }
 }
 
@@ -132,13 +132,13 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
     
     func onGrantUsersChanged(grantUsers: [String]) {
         log(.info,
-            log: "[Whiteboard widget] grant users changed: \(grantUsers)")
+            log: "grant users changed: \(grantUsers)")
         sendMessage(signal: .BoardGrantDataChanged(grantUsers))
     }
     
     func onLocalGrantedChangedForBoardHandle(localGranted: Bool) {
         log(.info,
-            log: "[Whiteboard widget] local granted: \(localGranted)")
+            log: "local granted: \(localGranted)")
         
         room?.setViewMode(localGranted ? .freedom : .follower)
         room?.disableDeviceInputs(!localGranted)
@@ -151,7 +151,7 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
             self.dt.localGranted = isWritable
             if let error = error {
                 self.log(.error,
-                         log: "[Whiteboard widget] setWritable error: \(error.localizedDescription)")
+                         log: "setWritable error: \(error.localizedDescription)")
             } else {
                 self.room?.disableCameraTransform(!isWritable)
                 self.ifUseLocalCameraConfig()

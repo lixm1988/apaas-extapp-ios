@@ -6,6 +6,7 @@
 //
 
 import Whiteboard
+import Security
 
 enum AgoraWhiteboardLogType {
     case info,warning,error
@@ -37,13 +38,50 @@ struct AgoraWhiteboardProperties: Decodable {
 }
 
 struct AgoraWhiteboardExtraInfo : Convertable {
-    var useMultiViews: Bool? = true
-    var coursewareDirectory: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory,
-                                                                          .userDomainMask,
-                                                                          true)[0].appending("AgoraDownload")
-    var autoFit: Bool = false
+    var useMultiViews: Bool
+    var coursewareDirectory: String
+    var autoFit: Bool
     var fonts: Dictionary<String,String>?
-    var collectorStyles: Dictionary<String,String>?
+    var collectorStyles: Dictionary<String,String>
+    
+    static func fromExtraDic(_ dic: Any?) -> AgoraWhiteboardExtraInfo {
+        var extra = AgoraWhiteboardExtraInfo.defaultValue()
+        
+        if let extraDic = dic as? [String: Any] {
+            if let useMultiViews = extraDic["useMultiViews"] as? Bool {
+                extra.useMultiViews = useMultiViews
+            }
+            if let coursewareDirectory = extraDic["coursewareDirectory"] as? String {
+                extra.coursewareDirectory = coursewareDirectory
+            }
+            if let autoFit = extraDic["autoFit"] as? Bool {
+                extra.autoFit = autoFit
+            }
+            if let fonts = extraDic["fonts"] as? Dictionary<String,String> {
+                extra.fonts = fonts
+            }
+            if let collectorStyles = extraDic["collectorStyles"] as? Dictionary<String,String> {
+                extra.collectorStyles = collectorStyles
+            }
+        }
+        return extra
+    }
+    
+    static func defaultValue() -> AgoraWhiteboardExtraInfo {
+        let defaultCoursewareDir = NSSearchPathForDirectoriesInDomains(.cachesDirectory,
+                                                                       .userDomainMask,
+                                                                       true)[0].appending("AgoraDownload")
+        let defaultCollectorStyles = ["position":"fixed",
+                                      "left":"10px",
+                                      "bottom":"13px",
+                                      "width":"44px",
+                                      "height":"44px"]
+        return AgoraWhiteboardExtraInfo(useMultiViews: true,
+                                        coursewareDirectory: defaultCoursewareDir,
+                                        autoFit: false,
+                                        fonts: nil,
+                                        collectorStyles: defaultCollectorStyles)
+    }
 }
 
 @objcMembers class AgoraWhiteBoardTask: NSObject {

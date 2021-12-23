@@ -28,7 +28,7 @@ class AgoraWhiteboardWidgetDT {
     @available(iOS 11.0, *)
     lazy var schemeHandler: AgoraWhiteURLSchemeHandler? = {
         return AgoraWhiteURLSchemeHandler(scheme: scheme,
-                                                       directory: extra.coursewareDirectory)
+                                          directory: extra.coursewareDirectory)
     }()
 
     var scenePath = "" {
@@ -175,8 +175,6 @@ class AgoraWhiteboardWidgetDT {
 #endif
         if #available(iOS 11.0, *),
            let handler = self.schemeHandler {
-//            let schemeHandler = AgoraWhiteURLSchemeHandler(scheme: scheme,
-//                                                           directory: extra.coursewareDirectory)
             wkConfig.setURLSchemeHandler(handler,
                                          forURLScheme: scheme)
         }

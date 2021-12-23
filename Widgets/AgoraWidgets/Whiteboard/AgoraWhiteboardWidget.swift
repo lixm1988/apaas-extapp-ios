@@ -43,14 +43,8 @@ struct InitCondition {
     
     // MARK: - AgoraBaseWidget
     public override init(widgetInfo: AgoraWidgetInfo) {
-        guard let extraDic = widgetInfo.extraInfo as? [String: Any],
-              let extra = extraDic.toObj(AgoraWhiteboardExtraInfo.self) else {
-            fatalError()
-            return
-        }
-        self.dt = AgoraWhiteboardWidgetDT(extra: extra,
+        self.dt = AgoraWhiteboardWidgetDT(extra: AgoraWhiteboardExtraInfo.fromExtraDic(widgetInfo.extraInfo),
                                           localUserInfo: widgetInfo.localUserInfo)
-
         
         self.logger = AgoraLogger(folderPath: self.dt.logFolder,
                                   filePrefix: widgetInfo.widgetId,
@@ -74,6 +68,8 @@ struct InitCondition {
     }
     
     public override func onMessageReceived(_ message: String) {
+        log(.info,
+            log: "onMessageReceived:\(message)")
         let signal = message.toSignal()
         switch signal {
         case .JoinBoard:
@@ -94,13 +90,15 @@ struct InitCondition {
             return
         }
         log(.info,
-            log: "[Whiteboard widget] onWidgetRoomPropertiesUpdated:\(properties)")
+            log: "onWidgetRoomPropertiesUpdated:\(properties)")
         dt.properties = wbProperties
     }
     
     public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
                                                        cause: [String : Any]?,
                                                        keyPaths: [String]) {
+        log(.info,
+            log: "onWidgetRoomPropertiesUpdated:\(keyPaths)")
         guard let wbProperties = properties?.toObj(AgoraWhiteboardProperties.self) else {
             return
         }
@@ -111,16 +109,16 @@ struct InitCondition {
              log: String) {
         switch type {
         case .info:
-            logger.log(log,
+            logger.log("[Whiteboard widget] \(log)",
                        type: .info)
         case .warning:
-            logger.log(log,
+            logger.log("[Whiteboard widget] \(log)",
                        type: .warning)
         case .error:
-            logger.log(log,
+            logger.log("[Whiteboard widget] \(log)",
                        type: .error)
         default:
-            logger.log(log,
+            logger.log("[Whiteboard widget] \(log)",
                        type: .info)
         }
     }
@@ -186,7 +184,7 @@ extension AgoraWhiteboardWidget {
             AgoraLoading.loading()
         }
         log(.info,
-            log: "[Whiteboard widget] start join")
+            log: "start join")
         sdk.joinRoom(with: roomConfig,
                      callbacks: self) { [weak self] (success, room, error) in
             guard let `self` = self else {
@@ -200,7 +198,7 @@ extension AgoraWhiteboardWidget {
             guard success, error == nil ,
                   let whiteRoom = room else {
                 self.log(.error,
-                          log: "[Whiteboard widget] join room error :\(error?.localizedDescription)")
+                          log: "join room error :\(error?.localizedDescription)")
                 self.dt.reconnectTime += 2
                 self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
@@ -211,7 +209,7 @@ extension AgoraWhiteboardWidget {
             }
             
             self.log(.info,
-                      log: "[Whiteboard widget] join room success")
+                      log: "join room success")
             
             self.room = whiteRoom
             self.initRoomState(state: whiteRoom.state)
@@ -251,77 +249,76 @@ extension AgoraWhiteboardWidget {
     }
     
     func initRoomState(state: WhiteRoomState) {
-            guard let `room` = room else {
-                return
-            }
-            
-            if let memberState = state.memberState as? WhiteReadonlyMemberState {
-                var member = memberState.toMemberState()
-                // 初始化时需要修改画笔状态，重连时不需要
-                if !joinedFlag {
-                    member.currentApplianceName = WhiteApplianceNameKey.ApplianceSelector
-                    member.strokeWidth = NSNumber(16)
-                    member.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
-                    member.textSize = NSNumber(18)
-                }
-
-                self.dt.currentMemberState = member
-                if room.isWritable {
-                    room.setMemberState(member)
-                }
-                
-                // 发送初始画笔状态的消息
-                var colorArr = Array<Int>()
-                member.strokeColor?.forEach { number in
-                    colorArr.append(number.intValue)
-                }
-                let widgetMember = AgoraBoardMemberState(member)
-                self.sendMessage(signal: .MemberStateChanged(widgetMember))
-            }
-            
-            // 老师离开
-            if let broadcastState = state.broadcastState {
-                if broadcastState.broadcasterId == nil {
-                    room.scalePpt(toFit: .continuous)
-                    room.scaleIframeToFit()
-                }
-            }
+        guard let `room` = room else {
+            return
+        }
+        if let state = state.globalState as? AgoraWhiteboardGlobalState {
+            // 发送初始授权状态的消息
+            dt.updateGlobalState(state: state)
+        }
         
-            if let state = state.globalState as? AgoraWhiteboardGlobalState {
-                // 发送初始授权状态的消息
-                dt.updateGlobalState(state: state)
+        if let memberState = state.memberState as? WhiteReadonlyMemberState {
+            var member = memberState.toMemberState()
+            // 初始化时需要修改画笔状态，重连时不需要
+            if !joinedFlag {
+                member.currentApplianceName = WhiteApplianceNameKey.ApplianceSelector
+                member.strokeWidth = NSNumber(16)
+                member.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
+                member.textSize = NSNumber(18)
             }
             
-            if let sceneState = state.sceneState {
-                // 1. 取真实regionDomain
-                if sceneState.scenes.count > 0,
-                   let ppt = sceneState.scenes[0].ppt,
-                   ppt.src.hasPrefix("pptx://") {
-                    let src = ppt.src
-                    let index = src.index(src.startIndex, offsetBy:7)
-                    let arr = String(src[index...]).split(separator: ".")
-                    dt.regionDomain = (dt.regionDomain == String(arr[0])) ? dt.regionDomain : String(arr[0])
-                }
-                
-                // 2. scenePath 判断
-                let paths = sceneState.scenePath.split(separator: "/")
-                if  paths.count > 0 {
-                    let newScenePath = String(sceneState.scenePath.split(separator: "/")[0])
-                    dt.scenePath = "/(newScenePath)"
-                }
-                
-                // 3. ppt 获取总页数，当前第几页
+            self.dt.currentMemberState = member
+            if room.isWritable {
+                room.setMemberState(member)
+            }
+            
+            // 发送初始画笔状态的消息
+            var colorArr = Array<Int>()
+            member.strokeColor?.forEach { number in
+                colorArr.append(number.intValue)
+            }
+            let widgetMember = AgoraBoardMemberState(member)
+            self.sendMessage(signal: .MemberStateChanged(widgetMember))
+        }
+        
+        // 老师离开
+        if let broadcastState = state.broadcastState {
+            if broadcastState.broadcasterId == nil {
+                room.scalePpt(toFit: .continuous)
                 room.scaleIframeToFit()
-                if sceneState.scenes[sceneState.index] != nil {
-                    room.scalePpt(toFit: .continuous)
-                }
-                // page改变
-    //            let pageCount = sceneState.scenes.count
-    //            let pageIndex = sceneState.index
-                ifUseLocalCameraConfig()
-                
+            }
+        }
+        
+        if let sceneState = state.sceneState {
+            // 1. 取真实regionDomain
+            if sceneState.scenes.count > 0,
+               let ppt = sceneState.scenes[0].ppt,
+               ppt.src.hasPrefix("pptx://") {
+                let src = ppt.src
+                let index = src.index(src.startIndex, offsetBy:7)
+                let arr = String(src[index...]).split(separator: ".")
+                dt.regionDomain = (dt.regionDomain == String(arr[0])) ? dt.regionDomain : String(arr[0])
             }
             
+            // 2. scenePath 判断
+            let paths = sceneState.scenePath.split(separator: "/")
+            if  paths.count > 0 {
+                let newScenePath = String(sceneState.scenePath.split(separator: "/")[0])
+                dt.scenePath = "/(newScenePath)"
+            }
+            
+            // 3. ppt 获取总页数，当前第几页
+            room.scaleIframeToFit()
+            if sceneState.scenes[sceneState.index] != nil {
+                room.scalePpt(toFit: .continuous)
+            }
+            // page改变
+            //            let pageCount = sceneState.scenes.count
+            //            let pageIndex = sceneState.index
+            ifUseLocalCameraConfig()
+            
+        }
+        
             if let cameraState = state.cameraState,
                dt.localGranted {
                 // 如果本地被授权，则是本地自己设置的摄像机视角

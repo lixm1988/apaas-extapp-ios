@@ -183,7 +183,6 @@ extension Dictionary {
               }
         return model
     }
-
 }
 
 extension String {
