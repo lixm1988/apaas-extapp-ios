@@ -6,15 +6,15 @@
 //  Copyright © 2021 Agora. All rights reserved.
 //
 
-#import "CountDownExtApp.h"
 #import <AgoraExtApps/AgoraExtApps-Swift.h>
+#import "CountDownExtApp.h"
 @import AgoraUIBaseViews;
 
 typedef enum : NSInteger {
-    CountdownStateDefault = 0,
-    CountdownStateStart,
-    CountdownStatePause,
-    CountdownStateStop,
+    CountdownStateUnstart = 0,
+    CountdownStateStart   = 1,
+    CountdownStatePause   = 2,
+    CountdownStateStop    = 3
 } CountdownState;
 
 @interface CountDownExtApp ()<CountDownDelegate>
@@ -22,7 +22,7 @@ typedef enum : NSInteger {
 @property (nonatomic, assign) CountdownState localState;
 
 @property (nonatomic, assign) NSInteger startTime;
-@property (nonatomic, assign) NSInteger pauseTime;
+//@property (nonatomic, assign) NSInteger pauseTime;
 @property (nonatomic, assign) NSInteger duration;
 @end
 
@@ -30,19 +30,13 @@ typedef enum : NSInteger {
 #pragma mark - Data callback
 - (void)propertiesDidUpdate:(NSDictionary *)properties {
     [super propertiesDidUpdate:properties];
-    
-    if (properties.allValues.count <= 0) {
-        return;
-    }
-    
     [self handleTimer];
 }
 
 #pragma mark - Life cycle
 - (void)extAppDidLoad:(AgoraExtAppContext *)context {
     [self initView];
-    
-    [self initData:context.properties];
+    [self initData];
 }
 
 - (void)extAppWillUnload {
@@ -52,7 +46,8 @@ typedef enum : NSInteger {
 #pragma mark - private
 - (void)initView {
     [self.view setUserInteractionEnabled:YES];
-    self.view.backgroundColor = UIColor.clearColor;
+    self.view.backgroundColor = UIColor.redColor;
+    self.view.agora_is_draggable = YES;
     
     CountDownWrapper *wrapper = [[CountDownWrapper alloc] init];
     AgoraBaseUIView *containerView = [wrapper getViewWithDelegate:self];
@@ -74,46 +69,27 @@ typedef enum : NSInteger {
     containerView.agora_bottom = 0;
 }
 
-- (void)initData:(NSDictionary *)properties {
-    [self propertiesDidUpdate:properties];
-    self.view.agora_is_draggable = YES;
-    /*
-     * You can make your own limit like this,default is keyWindow.frame
-     * self.view.agora_pan_limit = CGRectMake(0,
-     *                                       0,
-     *                                       600,
-     *                                       300);
-     */
+- (void)initData {
+    [self handleTimer];
 }
 
 - (NSInteger)getCurrentTime {
     NSDate *date = [NSDate date];
     return [date timeIntervalSince1970];
-    
-}
-
-- (void)setProperties:(NSDictionary *)properties {
-    if ([properties isEqualToDictionary:self.properties]) {
-        [self.view setHidden:YES];
-        return;
-    }
-    [super setProperties:properties];
-}
-
-- (void)setLocalState:(CountdownState)localState {
-    if (localState == _localState) {
-        return;
-    }
-    _localState = localState;
 }
 
 #pragma mark - Timer
 - (void)handleTimer {
+    if (self.properties.allValues.count <= 0) {
+        return;
+    }
+    
     [self.view setHidden:NO];
 
     NSString *remoteStateStr = (NSString *)self.properties[@"state"];
     NSInteger remoteState = remoteStateStr.integerValue;
-    if (remoteState == 0) {
+    
+    if (remoteState == CountdownStateUnstart) {
         return;
     }
     
@@ -176,10 +152,10 @@ typedef enum : NSInteger {
         time = pauseTimeStr.integerValue - startTimeStr.integerValue;
     }
     switch (self.localState) {
-        case CountdownStateDefault:
+        case CountdownStateUnstart:
+            self.localState = CountdownStatePause;
             [self.countDown invokeCountDownWithTotalSeconds:time
                                                   ifExecute:NO];
-            self.localState = CountdownStatePause;
             break;
         case CountdownStateStart: {
             self.localState = CountdownStatePause;

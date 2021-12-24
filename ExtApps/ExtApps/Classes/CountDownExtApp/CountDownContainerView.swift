@@ -6,7 +6,6 @@
 //  Copyright © 2021 Agora. All rights reserved.
 //
 
-import Foundation
 import AgoraUIBaseViews
 
 @objc public class CountDownWrapper: NSObject {
@@ -101,7 +100,8 @@ import AgoraUIBaseViews
     }
     
     // MARK: CountDownProtocol
-    public func invokeCountDown(withTotalSeconds totalSeconds: NSInteger, ifExecute: Bool) {
+    public func invokeCountDown(withTotalSeconds totalSeconds: NSInteger,
+                                ifExecute: Bool) {
         totalTime = totalSeconds
         if !ifExecute {
             return

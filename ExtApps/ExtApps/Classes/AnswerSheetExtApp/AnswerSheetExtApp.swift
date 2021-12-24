@@ -5,9 +5,9 @@
 //  Created by Jonathan on 2021/10/27.
 //
 
-import UIKit
-import Masonry
 import AgoraExtApp
+import Masonry
+import UIKit
 
 class AnswerSheetModel: Decodable {
     var answer: [String] = [String]()
@@ -50,6 +50,8 @@ class AnswerSheetItemModel: Decodable {
     
     public override func extAppDidLoad(_ context: AgoraExtAppContext) {
         super.extAppDidLoad(context)
+        parseProperties()
+        
         if localUserInfo.userRole == "teacher" && context.properties.isEmpty {
             let v = self.setupSheetViewUse(cls: AnswerSheetSetupView.self)
             v?.delegate = self
@@ -58,11 +60,15 @@ class AnswerSheetItemModel: Decodable {
     
     public override func propertiesDidUpdate(_ properties: [AnyHashable : Any]) {
         super.propertiesDidUpdate(properties)
+        parseProperties()
+    }
+    
+    func parseProperties() {
         guard let data = try? JSONSerialization.data(withJSONObject: properties, options: []),
               let model = try? JSONDecoder().decode(AnswerSheetModel.self, from: data) else {
             return
         }
-        print("properties: \(properties)")
+        
         model.uuid = localUserInfo.userUuid
         // 数据解析
         var tempReplies = [AnswerSheetItemModel]()
