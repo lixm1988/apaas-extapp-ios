@@ -46,7 +46,7 @@ typedef enum : NSInteger {
 #pragma mark - private
 - (void)initView {
     [self.view setUserInteractionEnabled:YES];
-    self.view.backgroundColor = UIColor.redColor;
+    self.view.backgroundColor = UIColor.clearColor;
     self.view.agora_is_draggable = YES;
     
     CountDownWrapper *wrapper = [[CountDownWrapper alloc] init];
