@@ -48,6 +48,7 @@ fileprivate class AgoraRtmDataModel: NSObject {
             self.updateDataModelWithDict(d)
         } else if let d = dict?["message"] as? [String: Any] {
             self.updateMessageWithDict(d)
+            self.sendMessage("chatWidgetDidReceiveMessage")
         } else if let d = dict?["view"] as? [String: Any] {
             self.updateViewWithDict(d)
         }

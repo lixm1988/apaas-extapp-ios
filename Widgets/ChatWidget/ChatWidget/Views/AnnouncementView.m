@@ -29,7 +29,7 @@
 - (void)setupSubViews
 {
     self.nilAnnouncementImageView = [[UIImageView alloc] init];
-    self.nilAnnouncementImageView.image = [UIImage imageNamedFromBundle:@"icon_nil"];
+    self.nilAnnouncementImageView.image = [UIImage imageNamedFromBundle:@"icon_announcement_none"];
     [self addSubview:self.nilAnnouncementImageView];
     [self.nilAnnouncementImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self);

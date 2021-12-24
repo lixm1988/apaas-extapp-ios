@@ -33,7 +33,7 @@
 - (void)setupSubViews
 {
     self.nilMsgImageView = [[UIImageView alloc] init];
-    self.nilMsgImageView.image = [UIImage imageNamedFromBundle:@"icon_nil"];
+    self.nilMsgImageView.image = [UIImage imageNamedFromBundle:@"icon_message_none"];
     [self addSubview:self.nilMsgImageView];
     [self.nilMsgImageView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self);

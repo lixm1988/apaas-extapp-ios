@@ -307,6 +307,7 @@ static const NSString* kChatRoomId = @"chatroomId";
         NSArray<EMMessage*>* array = [weakself.chatManager msgArray];
         [self.chatView updateMsgs:array];
         if(array.count > 0) {
+            [self sendMessage:@"chatWidgetDidReceiveMessage"];
             if([self.containView isHidden]) {
                 // 最小化了
                 self.badgeView.hidden = NO;
