@@ -5,6 +5,7 @@
 //
 
 #import "VoteListCell.h"
+@import AgoraUIBaseViews;
 
 @implementation VoteListCell{
     UIView* _optionTag;
@@ -146,14 +147,16 @@
         _optionTag.layer.borderWidth = 3;
         _optionTag.layer.borderColor = [UIColor colorWithRed:53/255.0 green:123/255.0 blue:246/255.0 alpha:1.0].CGColor;
         _optionTag.layer.backgroundColor = [UIColor whiteColor].CGColor;
-        
-        [_imgview setImage:[UIImage imageNamed:@"vt_checked"]];
+
+        [_imgview setImage:[UIImage ag_imageNamed:@"vt_checked"
+                                               in:@"AgoraExtApps"]];
     }else{
         _optionTag.layer.borderWidth = 1;
         _optionTag.layer.borderColor = [UIColor colorWithRed:236/255.0 green:236/255.0 blue:241/255.0 alpha:1.0].CGColor;
         _optionTag.layer.backgroundColor = [UIColor colorWithRed:249/255.0 green:249/255.0 blue:252/255.0 alpha:1.0].CGColor;
         
-        [_imgview setImage:[UIImage imageNamed:@"vt_unchecked"]];
+        [_imgview setImage:[UIImage ag_imageNamed:@"vt_unchecked"
+                                               in:@"AgoraExtApps"]];
     }
 }
 
