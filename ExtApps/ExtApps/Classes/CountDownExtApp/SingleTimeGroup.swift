@@ -29,7 +29,10 @@ import AgoraUIBaseViews
                 return
             }
             topView.label.text = timeStr
-            self.startAnimation()
+            bottomView.label.text = timeStr
+            upPageView.label.text = timeStr
+            downPageView.label.text = timeStr
+            //self.startAnimation()
         }
     }
     
