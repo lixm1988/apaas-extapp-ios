@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name             = 'ChatWidget'
-    s.version          = '0.1.0'
+    s.version          = '2.0.0'
     s.summary          = 'CloudClass Chat Widget'
     s.description      = <<-DESC
         ‘灵动课堂聊天插件.’
