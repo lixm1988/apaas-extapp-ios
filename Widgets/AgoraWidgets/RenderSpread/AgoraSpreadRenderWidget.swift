@@ -61,7 +61,7 @@ extension AgoraSpreadRenderWidget: AgoraRenderSpreadViewDelegate {
     func onCloseSpreadView(_ view: AgoraBaseUIView) {
         guard let renderInfo = renderUserInfo,
               let localUser = localUserInfo,
-              localUser.role == .teacher,
+              localUser.userRole == .teacher,
               let message = ["spreadFlag": false,
                              "operatedUuid": renderInfo.userId].jsonString() else {
             return
@@ -129,7 +129,7 @@ fileprivate extension AgoraSpreadRenderWidget {
     
     func handleRoomPropsMessage(dic: [String: Any]) {
         guard let `localUser` = localUserInfo,
-              localUser.role != .teacher else {
+              localUser.userRole != .teacher else {
             return
         }
         if let remove = dic["remove"] as? Bool,
@@ -148,7 +148,7 @@ fileprivate extension AgoraSpreadRenderWidget {
                 renderUserInfo = AgoraSpreadRenderUserInfo(userId: messageModel.extra.userId,
                                                            userName: userInfo.userName,
                                                            streamId: messageModel.extra.streamId,
-                                                           role: userInfo.role.toSpread())
+                                                           role: userInfo.userRole.toSpread())
                 // 1. 渲染弹出
                 if let message = ["widgetAction": AgoraSpreadAction.start.rawValue,
                                   "spreadStreamId": messageModel.extra.streamId,
@@ -166,7 +166,7 @@ fileprivate extension AgoraSpreadRenderWidget {
                 renderUserInfo = AgoraSpreadRenderUserInfo(userId: messageModel.extra.userId,
                                                            userName: userInfo.userName,
                                                            streamId: messageModel.extra.streamId,
-                                                           role: userInfo.role.toSpread())
+                                                           role: userInfo.userRole.toSpread())
                 if let message = ["widgetAction": AgoraSpreadAction.start.rawValue,
                                   "spreadStreamId": messageModel.extra.streamId,
                                   "operatedUuid": messageModel.extra.userId,
