@@ -10,9 +10,7 @@ import Foundation
 import AgoraUIBaseViews
 
 @objcMembers class SingleTimeGroup: AgoraBaseUIView {
-    
-    private let animaKey = "com.page.count"
-    
+        
     private lazy var topView: SingleTimeView = SingleTimeView(frame: .zero)
     private lazy var bottomView: SingleTimeView = SingleTimeView(frame: .zero)
     private lazy var upPageView: SingleTimeView = SingleTimeView(frame: .zero)
@@ -28,11 +26,7 @@ import AgoraUIBaseViews
             guard oldValue != timeStr else {
                 return
             }
-            topView.label.text = timeStr
-            bottomView.label.text = timeStr
-            upPageView.label.text = timeStr
-            downPageView.label.text = timeStr
-            //self.startAnimation()
+            self.startAnimation()
         }
     }
     
@@ -60,7 +54,8 @@ private extension SingleTimeGroup {
     func maskTopView() {
         let height = self.bounds.height
         let path = UIBezierPath(rect: CGRect(x: 0,
-                                             y: 0, width: self.bounds.width,
+                                             y: 0,
+                                             width: self.bounds.width,
                                              height: height * 0.5))
         let shapeLayer = CAShapeLayer()
         shapeLayer.fillRule = .evenOdd
@@ -80,46 +75,39 @@ private extension SingleTimeGroup {
     }
     
     func startAnimation() {
-        let animation = CABasicAnimation(keyPath: "transform.rotation.x")
-        animation.fromValue = Double.pi * 0
-        animation.toValue = Double.pi * -0.5
-        animation.duration = 0.25
-        animation.repeatCount = 0
-        animation.delegate = self
-        animation.isRemovedOnCompletion = false
-        upPageView.layer.add(animation, forKey: animaKey)
+        upPageView.isHidden = false
+        topView.label.text = self.timeStr
+        downPageView.isHidden = true
+        UIView.animate(withDuration: 0.25, delay: 0, options: .curveLinear) {
+            self.upPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -0.5),
+                                                                        1,
+                                                                        0,
+                                                                        0)
+        } completion: { isFinish in
+            self.upPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -0.1),
+                                                                        1,
+                                                                        0,
+                                                                        0)
+            self.upPageView.isHidden = true
+            self.continueAnimation()
+            self.upPageView.label.text = self.timeStr
+        }
     }
     
     func continueAnimation() {
-        let animation = CABasicAnimation(keyPath: "transform.rotation.x")
-        animation.fromValue  = Double.pi * -1.5
-        animation.toValue = Double.pi * -2
-        animation.duration = 0.25
-        animation.repeatCount = 0
-        animation.delegate = self
-        animation.isRemovedOnCompletion = false
-        downPageView.layer.add(animation, forKey: animaKey)
-    }
-}
-extension SingleTimeGroup: CAAnimationDelegate {
-    func animationDidStart(_ anim: CAAnimation) {
-        if anim == upPageView.layer.animation(forKey: animaKey) {
-            upPageView.isHidden = false
-        }
-        if anim == downPageView.layer.animation(forKey: animaKey) {
-            downPageView.label.text = timeStr
-            downPageView.isHidden = false
-        }
-    }
-    
-    func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        if anim == upPageView.layer.animation(forKey: animaKey) {
-            upPageView.isHidden = true
-            continueAnimation()
-            upPageView.label.text = timeStr
-        }
-        if anim == downPageView.layer.animation(forKey: animaKey) {
-            bottomView.label.text = timeStr
+        downPageView.label.text = timeStr
+        downPageView.isHidden = false
+        UIView.animate(withDuration: 0.25, delay: 0, options: .curveLinear) {
+            self.downPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -1.9),
+                                                                          1,
+                                                                          0,
+                                                                          0)
+        } completion: { isFinish in
+            self.downPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -1.5),
+                                                                          1,
+                                                                          0,
+                                                                          0)
+            self.bottomView.label.text = self.timeStr
         }
     }
 }
@@ -144,9 +132,17 @@ extension SingleTimeGroup {
 // MARK: private
 fileprivate extension SingleTimeGroup {
     private func createViews() {
+        upPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -0.1),
+                                                               1,
+                                                               0,
+                                                               0)
         addSubview(upPageView)
         addSubview(topView)
         addSubview(bottomView)
+        downPageView.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi * -1.5),
+                                                                 1,
+                                                                 0,
+                                                                 0)
         addSubview(downPageView)
         addSubview(lineImgView)
         lineImgView.mas_makeConstraints { make in
