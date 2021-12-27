@@ -20,26 +20,11 @@ Pod::Spec.new do |s|
     s.dependency 'SDWebImage'
     s.dependency 'WHToast'
 
-    s.subspec 'BINARY' do |binary|
-      binary.resources = 'ChatWidget/ChatWidget.bundle'
-      binary.source_files = 'ChatWidget/**/*.{h,m,strings}'
-      binary.public_header_files = [
-        'ChatWidget/Main/ChatWidget.h',
-      ]
+    s.resources = 'ChatWidget/ChatWidget.bundle'
+    s.source_files = 'ChatWidget/**/*.{h,m,strings}'
+    s.public_header_files = [
+      'ChatWidget/Main/ChatWidget.h',
+    ]
 
-      binary.vendored_frameworks = "../Products/Libs/AgoraWidget.framework"
-      binary.xcconfig = { 'FRAMEWORK_SEARCH_PATHS' => ['$(SRCROOT)/../../Products/Libs/'] }
-    end
-    
-    s.subspec 'SOURCE' do |source|
-      source.resources = 'ChatWidget/ChatWidget.bundle'
-      source.source_files = 'ChatWidget/**/*.{h,m,strings}'
-      source.public_header_files = [
-        'ChatWidget/Main/ChatWidget.h',
-      ]
-
-      source.dependency "AgoraWidget"
-    end
-
-    s.default_subspec = 'SOURCE'
+    s.dependency "AgoraWidget"
 end
