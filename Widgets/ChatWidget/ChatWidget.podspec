@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
     s.homepage = 'https://www.easemob.com'
     s.license          = { :type => 'MIT', :file => 'LICENSE' }
     s.author           = { 'easemob' => 'dev@easemob.com' }
-    s.source           = { :git => 'https://XXX/.git', :tag => s.version.to_s }
+    s.source           = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'ChatWidget_v' + "#{spec.version.to_s}" }
     s.frameworks = 'UIKit'
     s.libraries = 'stdc++'
     s.ios.deployment_target = '9.0'
@@ -21,9 +21,10 @@ Pod::Spec.new do |s|
     s.dependency 'WHToast'
 
     s.resources = 'ChatWidget/ChatWidget.bundle'
-    s.source_files = 'ChatWidget/**/*.{h,m,strings}'
+    s.source_files = 'Widgets/ChatWidget/ChatWidget/**/*.{h,m,strings}', 'ChatWidget/**/*.{h,m,strings}'
     s.public_header_files = [
       'ChatWidget/Main/ChatWidget.h',
+      'Widgets/ChatWidget/ChatWidget/Main/ChatWidget.h'
     ]
 
     s.dependency "AgoraWidget"
