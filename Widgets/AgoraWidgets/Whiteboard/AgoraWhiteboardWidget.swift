@@ -49,8 +49,8 @@ struct InitCondition {
         self.logger = AgoraLogger(folderPath: self.dt.logFolder,
                                   filePrefix: widgetInfo.widgetId,
                                   maximumNumberOfFiles: 5)
-        // 在此修改日志是否打印在控制台
-        self.logger.setPrintOnConsoleType(.all)
+        // MARK: 在此修改日志是否打印在控制台,默认为不打印
+        self.logger.setPrintOnConsoleType(.none)
         
         super.init(widgetInfo: widgetInfo)
         self.dt.delegate = self
