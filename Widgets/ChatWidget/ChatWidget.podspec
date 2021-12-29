@@ -5,9 +5,9 @@ Pod::Spec.new do |s|
     s.description      = <<-DESC
         ‘灵动课堂聊天插件.’
     DESC
-    s.homepage = 'https://www.easemob.com'
-    s.license          = { :type => 'MIT', :file => 'LICENSE' }
-    s.author           = { 'easemob' => 'dev@easemob.com' }
+    s.homepage     = 'https://docs.agora.io/en/agora-class/landing-page?platform=iOS'
+    s.license      = { "type" => "Copyright", "text" => "Copyright 2020 agora.io. All rights reserved." }
+    s.author       = { "Agora Lab" => "developer@agora.io" }
     s.source           = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'ChatWidget_v' + "#{spec.version.to_s}" }
     s.frameworks = 'UIKit'
     s.libraries = 'stdc++'
