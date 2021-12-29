@@ -6,12 +6,12 @@
 //
 
 import AgoraWidget
-import AgoraEduContext
+//import AgoraEduContext
 import Masonry
 
 @objcMembers public class AgoraCloudWidget: AgoraBaseWidget {
-    private let cloudView = AgoraCloudView(frame: .zero)
-    private var vm: AgoraCloudVM!
+//    private let cloudView = AgoraCloudView(frame: .zero)
+//    private var vm: AgoraCloudVM!
     
 //    public override init(widgetId: String,
 //                         properties: [AnyHashable : Any]?) {
@@ -32,56 +32,56 @@ import Masonry
 //        commonInit()
 //    }
     
-    private func setup() {
-        view.backgroundColor = .clear
-        view.addSubview(cloudView)
-    }
-    
-    private func initLayout() {
-        cloudView.mas_makeConstraints { make in
-            make?.left.equalTo()(self.view)
-            make?.right.equalTo()(self.view)
-            make?.top.equalTo()(self.view)
-            make?.bottom.equalTo()(self.view)
-        }
-    }
-    
-    private func commonInit() {
-        cloudView.topView.delegate = self
-        cloudView.listView.delegate = self
-        vm.delegate = self
-        vm.start()
-    }
+//    private func setup() {
+//        view.backgroundColor = .clear
+//        view.addSubview(cloudView)
+//    }
+//
+//    private func initLayout() {
+//        cloudView.mas_makeConstraints { make in
+//            make?.left.equalTo()(self.view)
+//            make?.right.equalTo()(self.view)
+//            make?.top.equalTo()(self.view)
+//            make?.bottom.equalTo()(self.view)
+//        }
+//    }
+//
+//    private func commonInit() {
+//        cloudView.topView.delegate = self
+//        cloudView.listView.delegate = self
+//        vm.delegate = self
+//        vm.start()
+//    }
     
 }
 
-extension AgoraCloudWidget: AgoraCloudTopViewDelegate, AgoraCloudListViewDelegate {
-    // MARK: - AgoraCloudTopViewDelegate
-    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudTopView.SelectedType) {
-        vm.changeSelectedType(type: type)
-        vm.fetchData()
-    }
-    
-    func agoraCloudTopViewDidTapCloseButton() {
-        
-    }
-    
-    func agoraCloudTopViewDidTapRefreshButton() {
-        vm.fetchData()
-    }
-    
-    // MARK: - AgoraCloudListViewDelegate
-    func agoraCloudListViewDidSelectedIndex(index: Int) {
-        vm.setSelectedIndex(index: index)
-    }
-}
-
-extension AgoraCloudWidget: AgoraCloudVMDelegate {
-    func agoraCloudVMDidUpdateList(vm: AgoraCloudVM,
-                                   list: [AgoraCloudVM.Info]) {
-        let viewInfos = list.map({ $0.viewInfo })
-        cloudView.listView
-            .update(infos: viewInfos)
-    }
-}
-
+//extension AgoraCloudWidget: AgoraCloudTopViewDelegate, AgoraCloudListViewDelegate {
+//    // MARK: - AgoraCloudTopViewDelegate
+//    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudTopView.SelectedType) {
+//        vm.changeSelectedType(type: type)
+//        vm.fetchData()
+//    }
+//    
+//    func agoraCloudTopViewDidTapCloseButton() {
+//        
+//    }
+//    
+//    func agoraCloudTopViewDidTapRefreshButton() {
+//        vm.fetchData()
+//    }
+//    
+//    // MARK: - AgoraCloudListViewDelegate
+//    func agoraCloudListViewDidSelectedIndex(index: Int) {
+//        vm.setSelectedIndex(index: index)
+//    }
+//}
+//
+//extension AgoraCloudWidget: AgoraCloudVMDelegate {
+//    func agoraCloudVMDidUpdateList(vm: AgoraCloudVM,
+//                                   list: [AgoraCloudVM.Info]) {
+//        let viewInfos = list.map({ $0.viewInfo })
+//        cloudView.listView
+//            .update(infos: viewInfos)
+//    }
+//}
+//
