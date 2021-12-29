@@ -6,7 +6,7 @@ if [ ${#SDK_Version} -le 0 ]; then
     exit -1
 fi
 
-SDK_Name="AgoraWidgets"
+SDK_Name="ChatWidget"
 SDK_Path="../../../Widgets"
 
 ./publish_cocoapods.sh ${SDK_Name} ${SDK_Path} ${SDK_Version}

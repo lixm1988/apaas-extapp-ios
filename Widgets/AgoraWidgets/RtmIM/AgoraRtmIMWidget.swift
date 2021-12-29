@@ -8,7 +8,6 @@
 import AgoraUIBaseViews
 import AgoraUIEduBaseViews
 import AgoraWidget
-import AgoraEduContext
 import Armin
 
 fileprivate class AgoraRtmDataModel: NSObject {
