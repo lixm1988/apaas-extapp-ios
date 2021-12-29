@@ -1,10 +1,9 @@
 Pod::Spec.new do |s|
     s.name             = 'ChatWidget'
     s.version          = '2.0.0'
-    s.summary          = 'CloudClass Chat Widget'
-    s.description      = <<-DESC
-        ‘灵动课堂聊天插件.’
-    DESC
+    s.summary          = 'CloudClass Widget'
+    s.description      = 'CloudClass Chat Widget'
+    s.module_name   = 'ChatWidget'
     s.homepage     = 'https://docs.agora.io/en/agora-class/landing-page?platform=iOS'
     s.license      = { "type" => "Copyright", "text" => "Copyright 2020 agora.io. All rights reserved." }
     s.author       = { "Agora Lab" => "developer@agora.io" }
