@@ -8,8 +8,6 @@ SDKs_Path="${SDK_Path}"
 
 cd ${SDKs_Path}
 
-echo '-------------------->>>>>>>>>>>>>>>>>'
-
 Tag=${SDK_Name}_v${SDK_Version}
 
 git tag -d ${Tag}
