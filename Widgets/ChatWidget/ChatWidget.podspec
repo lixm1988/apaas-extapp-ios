@@ -11,7 +11,7 @@ Pod::Spec.new do |spec|
     spec.source       = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'ChatWidget_v' + "#{spec.version.to_s}" }
     spec.frameworks = 'UIKit'
     spec.libraries = 'stdc++'
-    spec.ios.deployment_target = '9.0'
+    spec.ios.deployment_target = '10.0'
     
     spec.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES','EXCLUDED_ARCHS[sdk=iphonesimulator*]'=>'i386,arm64','VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
     
@@ -27,5 +27,5 @@ Pod::Spec.new do |spec|
       'Widgets/ChatWidget/ChatWidget/Main/ChatWidget.h'
     ]
 
-    spec.dependency "AgoraWidget", '>=2.0.1'
+    spec.dependency "AgoraWidget",'>=2.0.1'
 end
