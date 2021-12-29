@@ -5,11 +5,11 @@
 //  Created by LYY on 2021/10/11.
 //
 
-import AgoraUIEduBaseViews
-import AgoraUIBaseViews
-import AgoraWidget
-
-@objcMembers public class AgoraSpreadRenderWidget: AgoraBaseWidget {
+//import AgoraUIEduBaseViews
+//import AgoraUIBaseViews
+//import AgoraWidget
+//
+//@objcMembers public class AgoraSpreadRenderWidget: AgoraBaseWidget {
 //    private weak var userContext: AgoraEduUserContext?
 //    private weak var streamContext: AgoraEduStreamContext?
 //    private weak var mediaContext: AgoraEduMediaContext?
@@ -53,7 +53,7 @@ import AgoraWidget
 //        handleRoomPropsMessage(dic: dic)
 //        handleVCMessage(dic: dic)
 //    }
-}
+//}
 
 // MARK: - AgoraRenderSpreadViewDelegate
 //extension AgoraSpreadRenderWidget: AgoraRenderSpreadViewDelegate {

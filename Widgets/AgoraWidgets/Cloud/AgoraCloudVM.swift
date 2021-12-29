@@ -5,7 +5,7 @@
 //  Created by ZYP on 2021/10/23.
 //
 
-import AgoraWidget
+//import AgoraWidget
 //import AgoraEduContext
 
 //protocol AgoraCloudVMDelegate: NSObjectProtocol {
@@ -13,7 +13,7 @@ import AgoraWidget
 //                                   list: [AgoraCloudVM.Info])
 //}
 
-class AgoraCloudVM: NSObject {
+//class AgoraCloudVM: NSObject {
 //    private var publicFiles = [Info]()
 //    private var privateFiles = [Info]()
 //    private var serverApi: CloudServerApi!
@@ -98,7 +98,7 @@ class AgoraCloudVM: NSObject {
 //        delegate?.agoraCloudVMDidUpdateList(vm: self,
 //                                            list: list)
 //    }
-}
+//}
 
 
 

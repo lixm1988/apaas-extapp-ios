@@ -5,11 +5,11 @@
 //  Created by ZYP on 2021/10/20.
 //
 
-import AgoraWidget
+//import AgoraWidget
 //import AgoraEduContext
-import Masonry
+//import Masonry
 
-@objcMembers public class AgoraCloudWidget: AgoraBaseWidget {
+//@objcMembers public class AgoraCloudWidget: AgoraBaseWidget {
 //    private let cloudView = AgoraCloudView(frame: .zero)
 //    private var vm: AgoraCloudVM!
     
@@ -53,7 +53,7 @@ import Masonry
 //        vm.start()
 //    }
     
-}
+//}
 
 //extension AgoraCloudWidget: AgoraCloudTopViewDelegate, AgoraCloudListViewDelegate {
 //    // MARK: - AgoraCloudTopViewDelegate

@@ -5,14 +5,14 @@
 //  Created by Jonathan on 2021/10/10.
 //
 
-import AgoraUIBaseViews
-import Masonry
+//import AgoraUIBaseViews
+//import Masonry
 
-protocol AgoraRenderSpreadViewDelegate: NSObjectProtocol {
-    func onCloseSpreadView(_ view: AgoraBaseUIView)
-}
-
-class AgoraRenderSpreadView: AgoraBaseUIView {
+//protocol AgoraRenderSpreadViewDelegate: NSObjectProtocol {
+//    func onCloseSpreadView(_ view: AgoraBaseUIView)
+//}
+//
+//class AgoraRenderSpreadView: AgoraBaseUIView {
     
 //    weak var delegate: AgoraRenderSpreadViewDelegate?
 //    /** 相机状态*/
@@ -125,7 +125,7 @@ class AgoraRenderSpreadView: AgoraBaseUIView {
 //
 //        delegate?.onCloseSpreadView(self)
 //    }
-}
+//}
 
 //private extension AgoraRenderSpreadView {
 //    func createConstrains() {
