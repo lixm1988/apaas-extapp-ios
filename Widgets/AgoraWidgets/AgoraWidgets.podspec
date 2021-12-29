@@ -7,7 +7,7 @@ Pod::Spec.new do |spec|
   spec.homepage     = 'https://docs.agora.io/en/agora-class/landing-page?platform=iOS'
   spec.license      = { "type" => "Copyright", "text" => "Copyright 2020 agora.io. All rights reserved." }
   spec.author       = { "Agora Lab" => "developer@agora.io" }
-  spec.source       = { :git => "	git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'AgoraWidgets_v' + "#{spec.version.to_s}" }
+  spec.source       = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'AgoraWidgets_v' + "#{spec.version.to_s}" }
   spec.ios.deployment_target = "10.0"
   
   spec.module_name   = 'AgoraWidgets'
