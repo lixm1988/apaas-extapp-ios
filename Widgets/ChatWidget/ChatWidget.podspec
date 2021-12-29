@@ -20,7 +20,7 @@ Pod::Spec.new do |spec|
     spec.dependency 'SDWebImage'
     spec.dependency 'WHToast'
 
-    spec.resources = 'ChatWidget/ChatWidget.bundle'
+    spec.resources = 'Widgets/ChatWidget/ChatWidget/ChatWidget.bundle', 'ChatWidget/ChatWidget.bundle'
     spec.source_files = 'Widgets/ChatWidget/ChatWidget/**/*.{h,m,strings}', 'ChatWidget/**/*.{h,m,strings}'
     spec.public_header_files = [
       'ChatWidget/Main/ChatWidget.h',
