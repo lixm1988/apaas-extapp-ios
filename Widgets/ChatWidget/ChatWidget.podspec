@@ -27,5 +27,5 @@ Pod::Spec.new do |s|
       'Widgets/ChatWidget/ChatWidget/Main/ChatWidget.h'
     ]
 
-    s.dependency "AgoraWidget"
+    s.dependency "AgoraWidget", '>=2.0.1'
 end
