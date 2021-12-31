@@ -10,20 +10,20 @@ Pod::Spec.new do |spec|
 
   spec.ios.deployment_target = "10.0"
 
-  spec.source              = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => 'ChatWidget_v' + "#{spec.version.to_s}" }
-  spec.resources           = "Widgets/ChatWidget/ChatWidget/ChatWidget.bundle"
-  spec.source_files        = "Widgets/ChatWidget/ChatWidget/**/*.{h,m,strings}"
+  spec.source              = { :git => "ssh://git@git.agoralab.co/aduc/open-apaas-extapp-ios.git", :tag => 'ChatWidget_v' + "#{spec.version.to_s}" }
+  spec.resources           = "ChatWidget/ChatWidget.bundle"
+  spec.source_files        = "ChatWidget/**/*.{h,m,strings}"
   spec.public_header_files = [
-    "Widgets/ChatWidget/ChatWidget/Main/ChatWidget.h"
+    "ChatWidget/Main/ChatWidget.h"
   ]
-  
+    
   spec.dependency "HyphenateChat"
-  spec.dependency "AgoraWidget", ">=2.0.1"
+  spec.dependency "AgoraWidget"
   spec.dependency "SDWebImage"
   spec.dependency "Masonry"
   spec.dependency "WHToast", "0.0.7"
   spec.frameworks = "UIKit"
   spec.libraries  = "stdc++"
-  
+    
   spec.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES','EXCLUDED_ARCHS[sdk=iphonesimulator*]'=>'i386,arm64','VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
 end

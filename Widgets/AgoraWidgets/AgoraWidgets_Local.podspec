@@ -11,15 +11,15 @@ Pod::Spec.new do |spec|
   spec.ios.deployment_target = "10.0"
   spec.swift_versions        = ["5.0", "5.1", "5.2", "5.3", "5.4"]
 
-  spec.source       = { :git => "git@github.com:AgoraIO-Community/apaas-extapp-ios.git", :tag => "AgoraWidgets_v" + "#{spec.version.to_s}" }
-  spec.source_files = "Widgets/AgoraWidgets/Common/*.{h,m,swift}", "Widgets/AgoraWidgets/RenderSpread/*.{h,m,swift}", "Widgets/AgoraWidgets/Cloud/**/*.{h,m,swift}", "Widgets/AgoraWidgets/Whiteboard/**/*.{h,m,swift}", "Widgets/AgoraWidgets/RtmIM/**/*.{h,m,swift}"
+  spec.source       = { :git => "ssh://git@git.agoralab.co/aduc/open-apaas-extapp-ios.git", :tag => "AgoraWidgets_v" + "#{spec.version.to_s}" }
+  spec.source_files = "Common/*.{h,m,swift}", "RenderSpread/*.{h,m,swift}", "Cloud/**/*.{h,m,swift}", "Whiteboard/**/*.{h,m,swift}", "RtmIM/**/*.{h,m,swift}"
   
-  spec.dependency "AgoraUIEduBaseViews", ">=2.0.0"
-  spec.dependency "AgoraUIBaseViews", ">=2.0.0"
-  spec.dependency "AgoraWidget", ">=2.0.1"
+  spec.dependency "AgoraUIEduBaseViews"
+  spec.dependency "AgoraUIBaseViews"
+  spec.dependency "AgoraWidget"
   spec.dependency "AgoraLog"
   spec.dependency "Whiteboard"
-  spec.dependency "Armin", ">=1.0.9"
+  spec.dependency "Armin", '>=1.0.9'
 
   spec.dependency "SwifterSwift"
   spec.dependency "Masonry"
@@ -32,8 +32,8 @@ Pod::Spec.new do |spec|
   
   spec.subspec "Resources" do |ss|
       ss.resource_bundles = {
-        "AgoraWidgets" => ["Widgets/AgoraWidgets/AgoraResources/*/*.{strings}", 
-                           "Widgets/AgoraWidgets/*.xcassets"]
+        "AgoraWidgets" => ["AgoraResources/*/*.{strings}", 
+                           "*.xcassets"]
       }
   end
 end
