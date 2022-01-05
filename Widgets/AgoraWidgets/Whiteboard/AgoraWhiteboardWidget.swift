@@ -261,7 +261,7 @@ extension AgoraWhiteboardWidget {
             var member = memberState.toMemberState()
             // 初始化时需要修改画笔状态，重连时不需要
             if !joinedFlag {
-                member.currentApplianceName = WhiteApplianceNameKey.ApplianceSelector
+                member.currentApplianceName = WhiteApplianceNameKey.ApplianceClicker
                 member.strokeWidth = NSNumber(16)
                 member.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
                 member.textSize = NSNumber(18)
