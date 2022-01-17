@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "AgoraExtApps"
-  spec.version      = "2.0.0"
+  spec.version      = "2.1.0"
   spec.summary      = "Agora Extension Apps."
   spec.description  = "Agora Native Extension Apps."
   spec.homepage     = "https://docs.agora.io/en/agora-class/landing-page?platform=iOS"
