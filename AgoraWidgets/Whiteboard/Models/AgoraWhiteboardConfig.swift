@@ -9,17 +9,7 @@ import Whiteboard
 import Security
 
 enum AgoraWhiteboardLogType {
-    case info,warning,error
-}
-
-struct AgoraWhiteboardSize: Decodable {
-    var width: Int32
-    var height: Int32
-}
-
-struct AgoraWhiteboardPosition: Decodable {
-    var xAxis: Int32
-    var yAxis: Int32
+    case info, warning, error
 }
 
 struct AgoraWhiteboardPropExtra: Decodable {
@@ -29,12 +19,6 @@ struct AgoraWhiteboardPropExtra: Decodable {
     var boardRegion: String
     var follow: Int32? // 是否跟随
     var grantUsers: [String]?
-}
-
-struct AgoraWhiteboardProperties: Decodable {
-    var size: AgoraWhiteboardSize?
-    var position: AgoraWhiteboardPosition?
-    var extra: AgoraWhiteboardPropExtra
 }
 
 struct AgoraWhiteboardExtraInfo : Convertable {

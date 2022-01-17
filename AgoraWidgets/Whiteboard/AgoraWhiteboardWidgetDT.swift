@@ -63,13 +63,13 @@ class AgoraWhiteboardWidgetDT {
     var localGranted: Bool = false
     
     // config
-    var properties: AgoraWhiteboardProperties? {
+    var properties: AgoraWhiteboardPropExtra? {
         didSet {
             if let props = properties {
-                if props.extra.boardAppId != "",
-                   props.extra.boardRegion != "",
-                   props.extra.boardId != "",
-                   props.extra.boardToken != "" {
+                if props.boardAppId != "",
+                   props.boardRegion != "",
+                   props.boardId != "",
+                   props.boardToken != "" {
                     delegate?.onConfigComplete()
                 }
             }
@@ -194,7 +194,7 @@ class AgoraWhiteboardWidgetDT {
         guard let props = properties else {
             return nil
         }
-        let config = WhiteSdkConfiguration(app: props.extra.boardAppId)
+        let config = WhiteSdkConfiguration(app: props.boardAppId)
         config.enableIFramePlugin = false
         if #available(iOS 11.0, *) {
             let pptParams = WhitePptParams()
@@ -203,7 +203,7 @@ class AgoraWhiteboardWidgetDT {
         }
         config.fonts = extra.fonts
         config.userCursor = true
-        config.region = WhiteRegionKey(rawValue: props.extra.boardRegion)
+        config.region = WhiteRegionKey(rawValue: props.boardRegion)
         config.useMultiViews = extra.useMultiViews ?? true
         
         return config
@@ -213,8 +213,8 @@ class AgoraWhiteboardWidgetDT {
         guard let props = properties else {
             return nil
         }
-        let config = WhiteRoomConfig(uuid: props.extra.boardId,
-                                     roomToken: props.extra.boardToken,
+        let config = WhiteRoomConfig(uuid: props.boardId,
+                                     roomToken: props.boardToken,
                                      uid: localUserInfo.userUuid,
                                      userPayload: ["cursorName": localUserInfo.userName])
         config.isWritable = false
