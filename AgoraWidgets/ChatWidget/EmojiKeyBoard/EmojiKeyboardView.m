@@ -8,7 +8,6 @@
 #import "EmojiKeyboardView.h"
 #import "EMEmojiHelper.h"
 #import <Masonry/Masonry.h>
-#import "UIImage+ChatExt.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
 
 @implementation EMEmoticonModel

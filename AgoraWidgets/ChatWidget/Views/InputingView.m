@@ -7,7 +7,6 @@
 
 #import "InputingView.h"
 #import "EmojiKeyboardView.h"
-#import "UIImage+ChatExt.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
 @import AgoraUIBaseViews;
 

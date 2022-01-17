@@ -9,7 +9,6 @@
 
 #import "ChatManager.h"
 #import <WHToast/WHToast.h>
-#import "UIImage+ChatExt.h"
 #import "ChatTopView.h"
 #import "AnnouncementView.h"
 #import "ChatView.h"

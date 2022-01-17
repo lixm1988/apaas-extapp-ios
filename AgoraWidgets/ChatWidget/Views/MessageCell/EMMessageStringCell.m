@@ -8,7 +8,6 @@
 
 #import "EMMessageStringCell.h"
 #import <Masonry/Masonry.h>
-#import "UIImage+ChatExt.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
 
 @interface EMMessageStringCell ()

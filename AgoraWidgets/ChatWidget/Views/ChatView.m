@@ -9,7 +9,6 @@
 #import "EMMessageModel.h"
 #import "EMMessageStringCell.h"
 #import "EMMessageCell.h"
-#import "UIImage+ChatExt.h"
 #import <Masonry/Masonry.h>
 #import "EMDateHelper.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>

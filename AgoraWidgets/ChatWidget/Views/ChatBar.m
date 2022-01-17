@@ -6,7 +6,6 @@
 //
 
 #import "ChatBar.h"
-#import "UIImage+ChatExt.h"
 #import "InputingView.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
 @import AgoraUIBaseViews;

@@ -7,7 +7,6 @@
 //
 
 #import "EMMessageBubbleView.h"
-#import "UIImage+ChatExt.h"
 
 @implementation EMMessageBubbleView
 

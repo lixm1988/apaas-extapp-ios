@@ -6,7 +6,6 @@
 //
 
 #import "AnnouncementView.h"
-#import "UIImage+ChatExt.h"
 #import <Masonry/Masonry.h>
 @import AgoraUIBaseViews;
 #import <AgoraWidgets/AgoraWidgets-Swift.h>

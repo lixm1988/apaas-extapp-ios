@@ -28,7 +28,6 @@ ChatTeacher= "Teacher";
 ChatAssistant= "Assistant";
 ChatEmptyText = "No Message";
 ChatNoAnnouncement = "No Notice";
-ChatSendText = "Send";
 ChatAllMute = "All Mute";
 ChatMute = "You are muted by teacher";
 ChatLoginFaild = "Login failed";
