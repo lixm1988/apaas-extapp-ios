@@ -9,7 +9,6 @@ import Masonry
 import Whiteboard
 import AgoraLog
 import AgoraWidget
-import AgoraUIEduBaseViews
 
 struct InitCondition {
     var configComplete = false
@@ -181,20 +180,19 @@ extension AgoraWhiteboardWidget {
         }
         
         DispatchQueue.main.async {
-            AgoraLoading.loading()
+            AgoraWidgetLoading.addLoading(in: self.view)
+            //AgoraLoading.loading()
         }
         log(.info,
             log: "start join")
         sdk.joinRoom(with: roomConfig,
                      callbacks: self) { [weak self] (success, room, error) in
+            DispatchQueue.main.async {
+                AgoraWidgetLoading.removeLoading(in: self?.view)
+            }
             guard let `self` = self else {
-                DispatchQueue.main.async {
-                    AgoraLoading.hide()
-                }
-    
                 return
             }
-            
             guard success, error == nil ,
                   let whiteRoom = room else {
                 self.log(.error,
@@ -203,11 +201,6 @@ extension AgoraWhiteboardWidget {
                 self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
             }
-            
-            DispatchQueue.main.async {
-                AgoraLoading.hide()
-            }
-            
             self.log(.info,
                       log: "join room success")
             

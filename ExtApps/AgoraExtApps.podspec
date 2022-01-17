@@ -15,7 +15,6 @@ Pod::Spec.new do |spec|
   spec.source_files  = "ExtApps/**/*.{h,m,swift}"
   spec.module_map    = "ExtApps/AgoraExtApps.modulemap"
   
-  spec.dependency "AgoraUIEduBaseViews"
   spec.dependency "AgoraUIBaseViews"
   spec.dependency "SwifterSwift"
   spec.dependency "AgoraExtApp"
@@ -31,7 +30,7 @@ Pod::Spec.new do |spec|
   
   spec.subspec "Resources" do |ss|
       ss.resource_bundles = {
-        "AgoraExtApps" => ["ExtApps/Assets/**/*.{xcassets,strings,gif,mp3}"]
+        "AgoraExtApps" => ["Assets/**/*.{xcassets,strings,gif,mp3}"]
       }
   end
 end

@@ -6,7 +6,6 @@
 //
 
 import AgoraUIBaseViews
-import AgoraUIEduBaseViews
 
 class AgoraCloudView: AgoraBaseUIView {
     let topView = AgoraCloudTopView(frame: .zero)

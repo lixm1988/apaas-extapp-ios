@@ -6,7 +6,6 @@
 //
 
 import Whiteboard
-import AgoraUIEduBaseViews
 
 extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
     public func fireRoomStateChanged(_ modifyState: WhiteRoomState!) {
@@ -79,7 +78,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         log(.info,
             log: "phase: \(phase.strValue)")
         if phase == .connected {
-            AgoraLoading.hide()
+            AgoraWidgetLoading.removeLoading(in: self.view)
         }
         if phase == .disconnected {
             self.joinWhiteboard()

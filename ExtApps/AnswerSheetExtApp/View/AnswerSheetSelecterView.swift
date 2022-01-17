@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import AgoraUIEduBaseViews
 
 protocol AnswerSheetSelecterViewDelegate: NSObjectProtocol {
     func onSubmitAnswer(answers:[String])

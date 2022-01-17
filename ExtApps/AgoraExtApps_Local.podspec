@@ -15,7 +15,6 @@ Pod::Spec.new do |spec|
   spec.source_files  = "**/*.{h,m,swift}"
   spec.module_map    = "AgoraExtApps.modulemap"
   
-  spec.dependency "AgoraUIEduBaseViews"
   spec.dependency "AgoraUIBaseViews"
   spec.dependency "SwifterSwift"
   spec.dependency "AgoraExtApp"

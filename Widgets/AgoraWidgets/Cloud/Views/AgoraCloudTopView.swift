@@ -6,7 +6,6 @@
 //
 
 import AgoraUIBaseViews
-import AgoraUIEduBaseViews
 import Masonry
 
 protocol AgoraCloudTopViewDelegate: NSObjectProtocol {

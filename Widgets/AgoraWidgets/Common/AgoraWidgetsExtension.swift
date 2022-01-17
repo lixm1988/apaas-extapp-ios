@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AgoraUIEduBaseViews
 
 protocol Convertable: Codable {
     

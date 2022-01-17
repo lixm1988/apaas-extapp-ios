@@ -6,7 +6,6 @@
 //
 
 import AgoraUIBaseViews
-import AgoraUIEduBaseViews
 import AgoraWidget
 import Armin
 
