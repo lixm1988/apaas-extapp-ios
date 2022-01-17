@@ -206,9 +206,7 @@ static const NSString* kChatRoomId = @"chatroomId";
 }
 
 - (void)initData:(NSDictionary *)properties {
-    NSLog(@"********* initData: %@", properties.description);
-    
-    NSDictionary *widgetExtraProps = properties[@"extra"];
+    NSDictionary *widgetExtraProps = properties;
     
     // key
     NSString *appKey = nil;
