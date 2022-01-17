@@ -49,6 +49,8 @@ fileprivate class AgoraRtmDataModel: NSObject {
             self.sendMessage("chatWidgetDidReceiveMessage")
         } else if let d = dict?["view"] as? [String: Any] {
             self.updateViewWithDict(d)
+        } else if let isMute = dict?["isMute"] as? Bool {
+            self.sendBar.isMute(isMute)
         }
     }
     
@@ -74,7 +76,9 @@ fileprivate class AgoraRtmDataModel: NSObject {
                 self?.setupHistoryMessageWithList(list)
             }
         }
-        armin.request(task: requestTask, responseOnMainQueue: true, success: response) { error in
+        armin.request(task: requestTask,
+                      responseOnMainQueue: true,
+                      success: response) { error in
             return .resign
         }
     }
@@ -88,6 +92,7 @@ private extension AgoraRtmIMWidget {
                    "x-agora-uid": info.localUserInfo.userUuid]
         return dic
     }
+    
     func roleName(role: String) -> String? {
         if role == "teacher" {
             return "rtm_role_teacher".ag_localizedIn("AgoraWidgets")
@@ -101,6 +106,7 @@ private extension AgoraRtmIMWidget {
             return nil
         }
     }
+    
     func updateDataModelWithDict(_ dict: [String: Any]) {
         guard let host = dict["host"] as? String,
             let token = dict["token"] as? String,
@@ -115,6 +121,7 @@ private extension AgoraRtmIMWidget {
             fetchHistoryMessage()
         }
     }
+    
     func updateMessageWithDict(_ dict: [String: Any]) {
         guard let timestamp = dict["timestamp"] as? Int,
               let content = dict["content"] as? String,
@@ -132,6 +139,7 @@ private extension AgoraRtmIMWidget {
         model.roleName = self.roleName(role: role)
         messageList.appendMessage(message: model)
     }
+    
     func setupHistoryMessageWithList(_ list: [Dictionary<String, Any>]) {
         var temp = [AgoraRtmMessageModel]()
         for dict in list {
@@ -153,6 +161,7 @@ private extension AgoraRtmIMWidget {
         }
         messageList.setupHistoryMessages(list: temp)
     }
+    
     func updateViewWithDict(_ dict: [String: Any]) {
         if let topBarHidden = dict["hideTopBar"] as? Bool,
            topBarHidden == true {
@@ -190,7 +199,9 @@ extension AgoraRtmIMWidget: AgoraRtmIMInputViewDelegate {
                 // send message did success
             }
         }
-        armin.request(task: requestTask, responseOnMainQueue: true, success: response) { error in
+        armin.request(task: requestTask,
+                      responseOnMainQueue: true,
+                      success: response) { error in
             return .resign
         }        
     }

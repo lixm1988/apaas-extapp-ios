@@ -34,6 +34,16 @@ class AgoraRtmIMSendBar: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func isMute(_ isMute: Bool) {
+        if isMute {
+            infoLabel.text = "ChatSilencedPlaceholderText".ag_localizedIn("AgoraWidgets")
+        } else {
+            infoLabel.text = "ChatPlaceholderText".ag_localizedIn("AgoraWidgets")
+        }
+        
+        isUserInteractionEnabled = !isMute
+    }
 }
 // MARK: - Actions
 private extension AgoraRtmIMSendBar {
