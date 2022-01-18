@@ -172,19 +172,6 @@ extension AgoraBoardInteractionSignal {
 }
 
 // MARK: - Base
-extension Dictionary {
-    func toObj<T>(_ type: T.Type) -> T? where T : Decodable {
-        guard JSONSerialization.isValidJSONObject(self),
-              let data = try? JSONSerialization.data(withJSONObject: self,
-                                                     options: []),
-              let model = try? JSONDecoder().decode(T.self,
-                                                    from: data) else {
-                  return nil
-              }
-        return model
-    }
-}
-
 extension String {
     func translatePath() -> String {
         if self.count < 32 {

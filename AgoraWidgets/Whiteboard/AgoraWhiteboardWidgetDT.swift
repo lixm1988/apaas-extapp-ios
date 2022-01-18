@@ -25,10 +25,19 @@ class AgoraWhiteboardWidgetDT {
     // from whiteboard
     var regionDomain = "convertcdn"
     
+    var baseMemberState: WhiteMemberState = {
+        var state = WhiteMemberState()
+        state.currentApplianceName = WhiteApplianceNameKey.ApplianceClicker
+        state.strokeWidth = NSNumber(16)
+        state.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
+        state.textSize = NSNumber(18)
+        return state
+    }()
+    
     @available(iOS 11.0, *)
     lazy var schemeHandler: AgoraWhiteURLSchemeHandler? = {
         return AgoraWhiteURLSchemeHandler(scheme: scheme,
-                                          directory: extra.coursewareDirectory)
+                                          directory: configExtra.coursewareDirectory)
     }()
 
     var scenePath = "" {
@@ -63,9 +72,9 @@ class AgoraWhiteboardWidgetDT {
     var localGranted: Bool = false
     
     // config
-    var properties: AgoraWhiteboardPropExtra? {
+    var propsExtra: AgoraWhiteboardPropExtra? {
         didSet {
-            if let props = properties {
+            if let props = propsExtra {
                 if props.boardAppId != "",
                    props.boardRegion != "",
                    props.boardId != "",
@@ -75,7 +84,7 @@ class AgoraWhiteboardWidgetDT {
             }
         }
     }
-    var extra: AgoraWhiteboardExtraInfo
+    var configExtra: AgoraWhiteboardExtraInfo
     var localUserInfo: AgoraWidgetUserInfo
     
     lazy var logFolder: String = {
@@ -96,7 +105,7 @@ class AgoraWhiteboardWidgetDT {
     
     init(extra: AgoraWhiteboardExtraInfo,
          localUserInfo: AgoraWidgetUserInfo) {
-        self.extra = extra
+        self.configExtra = extra
         self.localUserInfo = localUserInfo
     }
     
@@ -191,7 +200,7 @@ class AgoraWhiteboardWidgetDT {
     }
     
     func getWhiteSDKConfigToInit() -> WhiteSdkConfiguration? {
-        guard let props = properties else {
+        guard let props = propsExtra else {
             return nil
         }
         let config = WhiteSdkConfiguration(app: props.boardAppId)
@@ -201,16 +210,16 @@ class AgoraWhiteboardWidgetDT {
             pptParams.scheme = scheme
             config.pptParams = pptParams
         }
-        config.fonts = extra.fonts
+        config.fonts = configExtra.fonts
         config.userCursor = true
         config.region = WhiteRegionKey(rawValue: props.boardRegion)
-        config.useMultiViews = extra.useMultiViews ?? true
+        config.useMultiViews = configExtra.useMultiViews ?? true
         
         return config
     }
     
     func getWhiteRoomConfigToJoin(ratio: CGFloat) -> WhiteRoomConfig? {
-        guard let props = properties else {
+        guard let props = propsExtra else {
             return nil
         }
         let config = WhiteRoomConfig(uuid: props.boardId,
@@ -223,7 +232,7 @@ class AgoraWhiteboardWidgetDT {
         let windowParams = WhiteWindowParams()
         windowParams.chessboard = false
         windowParams.containerSizeRatio = NSNumber.init(value: Float(ratio))
-        windowParams.collectorStyles = extra.collectorStyles
+        windowParams.collectorStyles = configExtra.collectorStyles
         
         config.windowParams = windowParams
         

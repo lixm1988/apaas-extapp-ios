@@ -25,7 +25,7 @@ struct InitCondition {
 
     var dt: AgoraWhiteboardWidgetDT
     
-    var joinedFlag: Bool = false
+    var initMemberStateFlag: Bool = false
     
     private var logger: AgoraLogger
     
@@ -57,7 +57,7 @@ struct InitCondition {
         initCondition.needInit = true
 
         if let wbProperties = widgetInfo.roomProperties?.toObj(AgoraWhiteboardPropExtra.self) {
-            dt.properties = wbProperties
+            dt.propsExtra = wbProperties
         }
     }
     
@@ -90,7 +90,7 @@ struct InitCondition {
         }
         log(.info,
             log: "onWidgetRoomPropertiesUpdated:\(properties)")
-        dt.properties = wbProperties
+        dt.propsExtra = wbProperties
     }
     
     public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
@@ -101,7 +101,7 @@ struct InitCondition {
         guard let wbProperties = properties?.toObj(AgoraWhiteboardPropExtra.self) else {
             return
         }
-        dt.properties = wbProperties
+        dt.propsExtra = wbProperties
     }
     
     func log(_ type: AgoraWhiteboardLogType,
@@ -209,12 +209,11 @@ extension AgoraWhiteboardWidget {
             
             self.dt.reconnectTime = 0
             self.initCondition.needJoin = false
-            self.joinedFlag = true
         }
     }
     
     func ifUseLocalCameraConfig() -> Bool {
-        guard dt.extra.autoFit,
+        guard dt.configExtra.autoFit,
               dt.localGranted,
               let cameraConfig = getLocalCameraConfig(),
               let `room` = room else {
@@ -250,29 +249,14 @@ extension AgoraWhiteboardWidget {
             dt.updateGlobalState(state: state)
         }
         
-        if let memberState = state.memberState as? WhiteReadonlyMemberState {
-            var member = memberState.toMemberState()
-            // 初始化时需要修改画笔状态，重连时不需要
-            if !joinedFlag {
-                member.currentApplianceName = WhiteApplianceNameKey.ApplianceClicker
-                member.strokeWidth = NSNumber(16)
-                member.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
-                member.textSize = NSNumber(18)
-            }
-            
-            self.dt.currentMemberState = member
-            if room.isWritable {
-                room.setMemberState(member)
-            }
-            
-            // 发送初始画笔状态的消息
-            var colorArr = Array<Int>()
-            member.strokeColor?.forEach { number in
-                colorArr.append(number.intValue)
-            }
-            let widgetMember = AgoraBoardMemberState(member)
-            self.sendMessage(signal: .MemberStateChanged(widgetMember))
+        dt.currentMemberState = dt.baseMemberState
+        // 发送初始画笔状态的消息
+        var colorArr = Array<Int>()
+        dt.baseMemberState.strokeColor?.forEach { number in
+            colorArr.append(number.intValue)
         }
+        let widgetMember = AgoraBoardMemberState(dt.baseMemberState)
+        self.sendMessage(signal: .MemberStateChanged(widgetMember))
         
         // 老师离开
         if let broadcastState = state.broadcastState {

@@ -155,6 +155,12 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
                 self.room?.disableCameraTransform(!isWritable)
                 self.ifUseLocalCameraConfig()
                 self.room?.setViewMode(isWritable ? .freedom : .follower)
+                if !self.initMemberStateFlag {
+                    if isWritable {
+                        self.room?.setMemberState(self.dt.baseMemberState)
+                        self.initMemberStateFlag = true
+                    }
+                }
             }
         })
     }
