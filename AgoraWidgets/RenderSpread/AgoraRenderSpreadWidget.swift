@@ -10,34 +10,57 @@ import AgoraLog
 import AgoraWidget
 
 @objcMembers public class AgoraRenderSpreadWidget: AgoraBaseWidget {
-    private(set) var contentView: UIView!
-    private lazy var spreadView = AgoraRenderSpreadView(frame: .zero)
-    private lazy var editView = AgoraSpreadEditView(frame: .zero)
-    
     private var logger: AgoraLogger
-    var dt: AgoraRenderSpreadWidgetDT
+    
+    private var curFrame: CGRect? {
+        didSet {
+            handleRoomProperties()
+        }
+    }
+    private var curExtra: AgoraSpreadExtraModel? {
+        didSet {
+            handleRoomProperties()
+        }
+    }
     
     // MARK: - AgoraBaseWidget
     public override init(widgetInfo: AgoraWidgetInfo) {
-        self.dt = AgoraRenderSpreadWidgetDT()
-        self.logger = AgoraLogger(folderPath: self.dt.logFolder,
+        let cachesFolder = NSSearchPathForDirectoriesInDomains(.cachesDirectory,
+                                                               .userDomainMask,
+                                                               true)[0]
+        let logFolder = cachesFolder.appending("/AgoraLog")
+        let manager = FileManager.default
+        
+        if !manager.fileExists(atPath: logFolder,
+                               isDirectory: nil) {
+            try? manager.createDirectory(atPath: logFolder,
+                                         withIntermediateDirectories: true,
+                                         attributes: nil)
+        }
+        self.logger = AgoraLogger(folderPath: logFolder,
                                   filePrefix: widgetInfo.widgetId,
                                   maximumNumberOfFiles: 5)
         
         super.init(widgetInfo: widgetInfo)
+
     }
     
     // MARK: widget callback
-    public override func onLocalUserInfoUpdated(_ localUserInfo: AgoraWidgetUserInfo) {
+    public override func onWidgetDidLoad() {
+        if let roomProps = info.roomProperties,
+           let spreadExtraModel = roomProps.toObj(AgoraSpreadExtraModel.self) {
+            curExtra = spreadExtraModel
+        }
         
+        if info.syncFrame != .zero {
+            curFrame = info.syncFrame
+        }
+        handleRoomProperties()
     }
     
     public override func onMessageReceived(_ message: String) {
-        log(.info,
-            log: "onMessageReceived:\(message)")
-        if let roomSignal = message.roomMessageToSignal(dt.renderUserInfo == nil) {
-            handleRoomPropsMessage(roomSignal)
-        } else if let vcSignal = message.vcMessageToSignal() {
+        logInfo("onMessageReceived:\(message)")
+        if let vcSignal = message.vcMessageToSignal() {
             handleVCMessage(vcSignal)
         }
     }
@@ -45,102 +68,76 @@ import AgoraWidget
     public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
                                                        keyPaths: [String]) {
-        log(.info,
-            log: properties.description)
+        logInfo(properties.description)
+        if let spreadExtraModel = properties.toObj(AgoraSpreadExtraModel.self) {
+            curExtra = spreadExtraModel
+        }
     }
 
     public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
                                                        cause: [String : Any]?,
                                                        keyPaths: [String]) {
-        log(.info,
-            log: keyPaths.description)
+        logInfo(keyPaths.description)
+        if let props = properties,
+           let remove = props["remove"] as? Bool,
+              remove {
+            sendMessage(.stop)
+        }
     }
     
-    func log(_ type: AgoraSpreadLogType,
-             log: String) {
-        switch type {
-        case .info:
-            logger.log("[RenderSpread widget] \(log)",
-                       type: .info)
-        case .warning:
-            logger.log("[RenderSpread widget] \(log)",
-                       type: .warning)
-        case .error:
-            logger.log("[RenderSpread widget] \(log)",
-                       type: .error)
-        default:
-            logger.log("[RenderSpread widget] \(log)",
-                       type: .info)
-        }
-    }
-}
-
-extension AgoraRenderSpreadWidget: AgoraRenderSpreadViewDelegate {
-    func onChangeEditState(open: Bool) {
-        guard info.localUserInfo.userRole != "teacher" else {
-            return
-        }
-        // TODO: 教师操作
-        editView.isHidden = !open
-    }
-    
-    func onCloseSpreadView(_ view: AgoraBaseUIView) {
-        guard info.localUserInfo.userRole != "teacher" else {
-            return
-        }
-        // TODO: 教师操作
+    public override func onSyncFrameUpdated(_ syncFrame: CGRect) {
+        curFrame = syncFrame
     }
 }
 
 fileprivate extension AgoraRenderSpreadWidget {
-    func initViews() {
-        view.backgroundColor = .clear
-        view.addSubview(spreadView)
-        view.addSubview(editView)
-        view.isHidden = true
-        spreadView.isHidden = true
-        editView.isHidden = true
-    }
-    
-    func initLayout() {
-        spreadView.mas_makeConstraints { make in
-            make?.top.left().bottom().right().equalTo()(self.view)
+    func handleRoomProperties() {
+        guard let extra = curExtra,
+              let frame = curFrame else {
+                  return
         }
-        editView.mas_makeConstraints { make in
-            make?.centerX.equalTo()(self.view.mas_centerX)
-            make?.height.equalTo()(AgoraWidgetsFit.scale(30))
-            make?.width.equalTo()(AgoraWidgetsFit.scale(138))
-        }
-    }
-    
-    func initData() {
-        spreadView.delegate = self
-    }
-    
-    func handleRoomPropsMessage(_ signal: AgoraSpreadInteractionSignal) {
-        switch signal {
-        case .start(let agoraSpreadRenderInfo):
-            view.isHidden = false
-            spreadView.isHidden = false
-        case .stop:
-            view.isHidden = true
-            spreadView.isHidden = true
-        default:
-            break
-        }
-        sendMessage(signal)
+        let user = AgoraSpreadUserInfo(userId: extra.userUuid,
+                                            streamId: extra.streamUuid)
+        let renderInfo = AgoraSpreadRenderInfo(frame: frame,
+                                               user: user)
+        sendMessage(extra.initial ? .start(renderInfo) : .changeFrame(renderInfo))
     }
     
     func handleVCMessage(_ signal: AgoraSpreadInteractionSignal) {
         // TODO: 教师操作
+        switch signal {
+        case .start(let agoraSpreadRenderInfo):
+            logInfo("SpreadUIController start")
+            // updateUserProperties
+            break
+        case .changeFrame(let agoraSpreadRenderInfo):
+            logInfo("SpreadUIController changeFrame")
+            // updateUserProperties
+            break
+        case .stop:
+            logInfo("SpreadUIController stop")
+            // deleteUserProperties
+            break
+        default:
+            break
+        }
     }
     
     func sendMessage(_ signal: AgoraSpreadInteractionSignal) {
         guard let text = signal.toMessageString() else {
-            log(.error,
-                log: "signal encode error!")
+            logError("signal encode error!")
             return
         }
         sendMessage(text)
+    }
+    
+    func logInfo(_ log: String) {
+        logger.log("[RenderSpread Widget \(info.widgetId)] \(log)",
+                   type: .info)
+    }
+    
+    func logError(_ log: String) {
+        logger.log("[RenderSpread Widget \(info.widgetId)] \(log)",
+                   type: .error)
     }
 }
