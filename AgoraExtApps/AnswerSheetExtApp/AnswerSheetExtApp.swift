@@ -133,7 +133,8 @@ extension AnswerSheetExtApp: AnswerSheetSelecterViewDelegate {
     func onSubmitAnswer(answers:[String]) {
         let interval = Int(Date().timeIntervalSince1970)
         let idKey = "student\(self.localUserInfo.userUuid)"
-        let params: [String: Any] = [idKey: ["answer": answers, "replyTime": String(interval)]]
+        let params: [String: Any] = [idKey: ["answer": answers,
+                                             "replyTime": String(interval)]]
         self.updateProperties(params) {
             print("answer: update properties successs")
         } fail: { ero in
