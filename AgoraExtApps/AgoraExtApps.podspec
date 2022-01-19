@@ -18,7 +18,7 @@ Pod::Spec.new do |spec|
   spec.dependency "AgoraUIBaseViews", ">=2.1.0"
   spec.dependency "SwifterSwift"
   spec.dependency "AgoraExtApp", ">=2.1.0"
-  spec.dependency "AgoraLog"
+  spec.dependency "AgoraLog", "1.0.2"
   spec.dependency "Masonry"
   spec.dependency "Armin"
   
@@ -30,7 +30,7 @@ Pod::Spec.new do |spec|
   
   spec.subspec "Resources" do |ss|
       ss.resource_bundles = {
-        "AgoraExtApps" => ["Assets/**/*.{xcassets,strings,gif,mp3}"]
+        "AgoraExtApps" => ["AgoraExtApps/Assets/**/*.{xcassets,strings,gif,mp3}"]
       }
   end
 end
