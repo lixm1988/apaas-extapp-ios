@@ -69,6 +69,7 @@ struct InitCondition {
     public override func onMessageReceived(_ message: String) {
         log(.info,
             log: "onMessageReceived:\(message)")
+        
         let signal = message.toSignal()
         switch signal {
         case .JoinBoard:
@@ -236,8 +237,8 @@ extension AgoraWhiteboardWidget {
     }
     
     func handleAudioMixing(data: AgoraBoardAudioMixingData) {
-        whiteSDK?.audioMixer?.setMediaState(data.statusCode,
-                                           errorCode: data.errorCode)
+        whiteSDK?.audioMixer?.setMediaState(data.stateCode,
+                                            errorCode: data.errorCode)
     }
     
     func initRoomState(state: WhiteRoomState) {

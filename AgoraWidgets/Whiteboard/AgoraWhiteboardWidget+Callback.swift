@@ -104,8 +104,14 @@ extension AgoraWhiteboardWidget: WhiteAudioMixerBridgeDelegate {
                                  loopback: Bool,
                                  replace: Bool,
                                  cycle: Int) {
+        let path = filePath.replacingOccurrences(of: "agoranetless",
+                                                 with: "http")
+        
+        let p = path.replacingOccurrences(of: "mp4",
+                                          with: "mp3")
+        
         let request = AgoraBoardAudioMixingRequestData(requestType: .start,
-                                                       filePath: filePath,
+                                                       filePath: p,
                                                        loopback: loopback,
                                                        replace: replace,
                                                        cycle: cycle)

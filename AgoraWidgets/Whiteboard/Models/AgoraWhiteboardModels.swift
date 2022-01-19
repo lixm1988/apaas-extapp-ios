@@ -121,7 +121,7 @@ struct AgoraBoardMemberState: Convertable {
 }
 
 struct AgoraBoardAudioMixingData: Convertable {
-    var statusCode: Int
+    var stateCode: Int
     var errorCode: Int
 }
 
