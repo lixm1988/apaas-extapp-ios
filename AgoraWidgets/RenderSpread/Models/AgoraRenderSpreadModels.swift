@@ -7,11 +7,21 @@
 
 import Foundation
 
-struct AgoraSpreadExtraModel: Convertable {
-    var initial: Bool // 开启渲染/切换流:true，移动:false
-    var userUuid: String
-    var streamUuid: String
-    var operatorId: String
+struct AgoraSpreadExtraModel: Convertable, Equatable {
+    var initial: Bool = true
+    var userUuid: String = ""
+    var streamUuid: String = ""
+    var operatorId: String = ""
+    
+    static func == (lhs: Self,
+                    rhs: Self) -> Bool {
+        if lhs.initial == rhs.initial,
+           lhs.userUuid == rhs.userUuid,
+           lhs.streamUuid == rhs.streamUuid {
+            return true
+        }
+        return false
+    }
 }
 
 struct AgoraSpreadCondition {

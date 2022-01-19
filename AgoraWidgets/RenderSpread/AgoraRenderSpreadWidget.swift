@@ -12,16 +12,22 @@ import AgoraWidget
 @objcMembers public class AgoraRenderSpreadWidget: AgoraBaseWidget {
     private var logger: AgoraLogger
     
-    private var curFrame: CGRect? {
+    private var curFrame: CGRect = .zero {
         didSet {
-            handleRoomProperties()
+            if curFrame != oldValue {
+                handleRoomProperties()
+            }
         }
     }
-    private var curExtra: AgoraSpreadExtraModel? {
+    private var curExtra = AgoraSpreadExtraModel() {
         didSet {
-            handleRoomProperties()
+            if curExtra != oldValue {
+                handleRoomProperties()
+            }
         }
     }
+    
+    private var initedFlag = false
     
     // MARK: - AgoraBaseWidget
     public override init(widgetInfo: AgoraWidgetInfo) {
@@ -73,17 +79,6 @@ import AgoraWidget
             curExtra = spreadExtraModel
         }
     }
-
-    public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
-                                                       cause: [String : Any]?,
-                                                       keyPaths: [String]) {
-        logInfo(keyPaths.description)
-        if let props = properties,
-           let remove = props["remove"] as? Bool,
-              remove {
-            sendMessage(.stop)
-        }
-    }
     
     public override func onSyncFrameUpdated(_ syncFrame: CGRect) {
         curFrame = syncFrame
@@ -92,15 +87,20 @@ import AgoraWidget
 
 fileprivate extension AgoraRenderSpreadWidget {
     func handleRoomProperties() {
-        guard let extra = curExtra,
-              let frame = curFrame else {
+        guard curExtra != AgoraSpreadExtraModel(),
+              curFrame != .zero else {
                   return
-        }
-        let user = AgoraSpreadUserInfo(userId: extra.userUuid,
-                                            streamId: extra.streamUuid)
-        let renderInfo = AgoraSpreadRenderInfo(frame: frame,
+              }
+        let user = AgoraSpreadUserInfo(userId: curExtra.userUuid,
+                                       streamId: curExtra.streamUuid)
+        let renderInfo = AgoraSpreadRenderInfo(frame: curFrame,
                                                user: user)
-        sendMessage(extra.initial ? .start(renderInfo) : .changeFrame(renderInfo))
+        if initedFlag {
+            sendMessage(.changeFrame(renderInfo))
+        } else {
+            sendMessage(.start(renderInfo))
+            initedFlag = true
+        }
     }
     
     func handleVCMessage(_ signal: AgoraSpreadInteractionSignal) {
