@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "msg_bg_send.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
