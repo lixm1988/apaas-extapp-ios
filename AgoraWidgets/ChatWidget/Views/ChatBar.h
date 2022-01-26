@@ -12,6 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol ChatBarDelegate <NSObject>
 
 - (void)msgWillSend:(NSString*)aMsgText;
+- (void)imageDataWillSend:(NSData*)aImageData;
 
 @end
 
@@ -19,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,weak) id<ChatBarDelegate> delegate;
 @property (nonatomic) BOOL isAllMuted;
 @property (nonatomic) BOOL isMuted;
++ (UIViewController *)findCurrentShowingViewController;
 @end
 
 NS_ASSUME_NONNULL_END

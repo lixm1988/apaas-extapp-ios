@@ -12,6 +12,7 @@
 #import <Masonry/Masonry.h>
 #import "EMDateHelper.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
+#import <SDWebImage/UIImageView+WebCache.h>
 @import AgoraUIBaseViews;
 
 @interface NilMsgView ()
@@ -117,6 +118,8 @@
 @property (nonatomic, strong) UIMenuItem *recallMenuItem;
 // 删除的消息
 @property (nonatomic, strong) NSMutableArray<NSString*>* msgsToDel;
+// 图片放大
+@property (nonatomic,strong) UIImageView* fullImageView;
 @end
 
 @implementation ChatView
@@ -224,6 +227,39 @@
     }
     
     return _menuController;
+}
+
+- (UIImageView*)fullImageView
+{
+    if(!_fullImageView) {
+        _fullImageView = [[UIImageView alloc] init];
+        _fullImageView.userInteractionEnabled = YES;
+        _fullImageView.multipleTouchEnabled = YES;
+        _fullImageView.backgroundColor = [UIColor colorWithWhite:1 alpha:1.0];
+        _fullImageView.contentMode = UIViewContentModeScaleAspectFit;
+        UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                           action:@selector(handleTapAction:)];
+        [_fullImageView addGestureRecognizer:tap];
+        [self addGestureRecognizerToView:_fullImageView];
+    }
+    return _fullImageView;
+}
+
+- (void)pinchView:(UIPinchGestureRecognizer*)pinchGestureRecognizer
+{
+    UIImageView* view = pinchGestureRecognizer.view;
+    if(pinchGestureRecognizer.state == UIGestureRecognizerStateBegan) {
+        view.transform = CGAffineTransformScale(view.transform, pinchGestureRecognizer.scale, pinchGestureRecognizer.scale);
+        pinchGestureRecognizer.scale = 2;
+    }
+}
+
+- (void) addGestureRecognizerToView:(UIView *)view
+{
+    // 缩放手势
+     UIPinchGestureRecognizer *pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchView:)];
+
+    [view addGestureRecognizer:pinchGestureRecognizer];
 }
 
 - (BOOL)canBecomeFirstResponder
@@ -430,9 +466,33 @@
 #pragma mark - EMMessageCellDelegate
 - (void)messageCellDidSelected:(EMMessageCell *)aCell
 {
+    if(aCell && aCell.model.type == EMMessageTypeImage) {
+        UIWindow * window=[[[UIApplication sharedApplication] delegate] window];
+        EMImageMessageBody *imageBody = (EMImageMessageBody*)aCell.model.emModel.body;
+        
+        if(imageBody.remotePath.length > 0) {
+            NSURL* url = [NSURL URLWithString:imageBody.remotePath];
+            if(url) {
+                [self.fullImageView sd_setImageWithURL:url completed:nil];
+                [window addSubview:self.fullImageView];
+                self.fullImageView.frame = window.frame;
+            }
+        }
+    }
     
 }
 
+- (void)handleTapAction:(UITapGestureRecognizer *)aTap
+{
+    if (aTap.state == UIGestureRecognizerStateEnded) {
+        [self.fullImageView removeFromSuperview];
+    }
+}
+
+- (void)imageDataWillSend:(NSData*)aImageData
+{
+    [self.delegate imageDataWillSend:aImageData];
+}
 
 - (void)recallMenuItemAction:(UIMenuItem *)aItem
 {

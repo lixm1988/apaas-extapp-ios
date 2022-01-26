@@ -43,3 +43,5 @@ ChatRecall = "Recall";
 ChatRecallAMessage = "Recall a message";
 ChatMutedByTeacher = "muted by %@ teacher";
 ChatUnmutedByTeacher = "unmuted by %@ teacher";
+ChatPhotoPermissionDisabled = "Album permission not enabled";
+ChatImageTooLarge = "The picture is too large, please choose another";

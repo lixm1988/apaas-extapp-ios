@@ -442,4 +442,9 @@ static const NSString* kChatRoomId = @"chatroomId";
 {
     [self.chatManager sendCommonTextMsg:aMsgText];
 }
+
+- (void)imageDataWillSend:(NSData*)aImageData
+{
+    [self.chatManager sendImageMsgWithData:aImageData msgType:ChatMsgTypeCommon asker:nil];
+}
 @end

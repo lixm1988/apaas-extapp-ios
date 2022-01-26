@@ -144,30 +144,31 @@ static BOOL isSDKInited = NO;
                 [weakself.delegate mutedStateDidChanged];
         }
     }];
-    EMCursorResult* result =  [[[EMClient sharedClient] chatManager] fetchHistoryMessagesFromServer:self.chatRoomId conversationType:EMConversationTypeGroupChat startMessageId:@"" pageSize:50 error:nil];
-    if(result.list.count > 0){
-        if(self.latestMsgId.length > 0)
-        {
-            NSArray* arr = [[result.list reverseObjectEnumerator] allObjects];
-            NSMutableArray* msgToAdd = [NSMutableArray array];
-            for (EMMessage* msg in arr) {
-                if([msg.messageId isEqualToString:self.latestMsgId]) {
-                    if(self.dataArray.count > 0){
-                        [self.delegate chatMessageDidReceive];
+    [[[EMClient sharedClient] chatManager] asyncFetchHistoryMessagesFromServer:self.chatRoomId conversationType:EMConversationTypeGroupChat startMessageId:@"" pageSize:50 completion:^(EMCursorResult *aResult, EMError *aError) {
+        if(!aError && aResult.list.count > 0){
+            if(weakself.latestMsgId.length > 0)
+            {
+                NSArray* arr = [[aResult.list reverseObjectEnumerator] allObjects];
+                NSMutableArray* msgToAdd = [NSMutableArray array];
+                for (EMMessage* msg in arr) {
+                    if([msg.messageId isEqualToString:weakself.latestMsgId]) {
+                        if(weakself.dataArray.count > 0){
+                            [weakself.delegate chatMessageDidReceive];
+                        }
+                        return;
+                    }else{
+                        [weakself.dataArray insertObject:msg atIndex:0];
                     }
-                    return;
-                }else{
-                    [self.dataArray insertObject:msg atIndex:0];
                 }
+            }else{
+                [weakself.dataArray addObjectsFromArray:aResult.list];
+                EMMessage* lastMsg = [aResult.list lastObject];
+                if(lastMsg)
+                    weakself.latestMsgId = lastMsg.messageId;
+                [weakself.delegate chatMessageDidReceive];
             }
-        }else{
-            [weakself.dataArray addObjectsFromArray:result.list];
-            EMMessage* lastMsg = [result.list lastObject];
-            if(lastMsg)
-                self.latestMsgId = lastMsg.messageId;
-            [weakself.delegate chatMessageDidReceive];
         }
-    }
+    }];
     // 获取是否被禁言
     [[[EMClient sharedClient] roomManager] isMemberInWhiteListFromServerWithChatroomId:self.chatRoomId completion:^(BOOL inWhiteList, EMError *aError) {
         if(!aError) {
@@ -245,9 +246,6 @@ static BOOL isSDKInited = NO;
 - (void)sendTextMsg:(NSString*)aText msgType:(ChatMsgType)aType
 {
     if(aText.length > 0  && self.isLogin) {
-        if(self.user.avatarurl.length <= 0) {
-            self.user.avatarurl = @"https://download-sdk.oss-cn-beijing.aliyuncs.com/downloads/IMDemo/avatar/Image1.png";
-        }
         EMTextMessageBody* textBody = [[EMTextMessageBody alloc] initWithText:aText];
         NSMutableDictionary* ext = [@{kMsgType:[NSNumber numberWithInteger: aType],
                                       @"role": [NSNumber numberWithInteger:self.user.role],
@@ -299,6 +297,37 @@ static BOOL isSDKInited = NO;
                     }
                 }];
     }
+}
+
+- (void)sendImageMsgWithData:aImageData msgType:(ChatMsgType)aType asker:(NSString*)aAsker;
+{
+    EMImageMessageBody *body = [[EMImageMessageBody alloc] initWithData:aImageData displayName:@"image"];
+    NSString *from = [[EMClient sharedClient] currentUsername];
+    NSString *to = self.chatRoomId;
+    NSMutableDictionary* ext = [@{kMsgType:[NSNumber numberWithInteger: aType],
+                                  @"role": [NSNumber numberWithInteger:self.user.role]} mutableCopy];
+    if(self.user.nickname.length > 0 ){
+        [ext setObject:self.user.nickname forKey:kNickName];
+    }
+    if(self.user.avatarurl.length > 0 ){
+        [ext setObject:self.user.avatarurl forKey:kAvatarUrl];
+    }
+    if(self.user.roomUuid.length > 0) {
+        [ext setObject:self.user.roomUuid forKey:kRoomUuid];
+    }
+    
+    EMMessage *message = [[EMMessage alloc] initWithConversationID:to from:from to:to body:body ext:ext];
+    
+    message.chatType = EMChatTypeChatRoom;
+    message.status = EMMessageStatusDelivering;
+    
+    [[EMClient sharedClient].chatManager sendMessage:message progress:nil completion:^(EMMessage *message,EMError *error) {
+        if(!error) {
+            [self.delegate chatMessageDidSend:message];
+        }else{
+            [self.delegate exceptionDidOccur:error.errorDescription];
+        }
+    }];
 }
 
 - (ChatUserConfig*)userConfig
@@ -382,6 +411,13 @@ static BOOL isSDKInited = NO;
 //                        [self.askAndAnswerMsgLock unlock];
 //                    }
 //                }
+            }
+            if(msg.body.type == EMMessageBodyTypeImage) {
+                [self.dataLock lock];
+                [self.dataArray addObject:msg];
+                self.latestMsgId = msg.messageId;
+                [self.dataLock unlock];
+                aInsertCommonMsg = YES;
             }
         }
     }
