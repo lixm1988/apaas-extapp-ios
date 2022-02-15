@@ -46,7 +46,7 @@ NS_ASSUME_NONNULL_BEGIN
 // 发送普通聊天消息
 - (void)sendCommonTextMsg:(NSString*)aText;
 // 发送图片消息
-- (void)sendImageMsgWithData:aImageData msgType:(ChatMsgType)aType asker:(NSString*)aAsker;
+- (void)sendImageMsgWithData:(NSData*)aImageData msgType:(ChatMsgType)aType asker:(NSString*)aAsker;
 // 获取用户配置
 - (ChatUserConfig*)userConfig;
 // 接收的消息

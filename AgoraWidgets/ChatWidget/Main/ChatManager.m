@@ -299,7 +299,7 @@ static BOOL isSDKInited = NO;
     }
 }
 
-- (void)sendImageMsgWithData:aImageData msgType:(ChatMsgType)aType asker:(NSString*)aAsker;
+- (void)sendImageMsgWithData:(NSData*)aImageData msgType:(ChatMsgType)aType asker:(NSString*)aAsker;
 {
     EMImageMessageBody *body = [[EMImageMessageBody alloc] initWithData:aImageData displayName:@"image"];
     NSString *from = [[EMClient sharedClient] currentUsername];
