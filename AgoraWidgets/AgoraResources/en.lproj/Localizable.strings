@@ -43,3 +43,13 @@ ChatRecall = "Recall";
 ChatRecallAMessage = "Recall a message";
 ChatMutedByTeacher = "muted by %@ teacher";
 ChatUnmutedByTeacher = "unmuted by %@ teacher";
+ChatPhotoPermissionDisabled = "Album permission not enabled";
+ChatImageTooLarge = "The picture is too large, please choose another";
+
+// Cloud
+CloudFileName = "File Name";
+CloudSearch = "Search";
+CloudPublicResource = "Public coursewares";
+CloudPrivateResource = "Private coursewares";
+CloudSum = "";
+CloudItem = "items";

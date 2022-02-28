@@ -277,7 +277,11 @@ static const NSString* kChatRoomId = @"chatroomId";
     user.username = self.launchData.userUuid;
     user.nickname = self.launchData.userName;
     user.roomUuid = self.launchData.roomUuid;
-    user.role = 2;
+    if ([self.info.localUserInfo.userRole isEqualToString:@"teacher"]) {
+        user.role = 1;
+    } else {
+        user.role = 2;
+    }
     
     kChatRoomId = self.launchData.chatRoomId;
     
@@ -332,6 +336,9 @@ static const NSString* kChatRoomId = @"chatroomId";
 
 - (void)mutedStateDidChanged
 {
+    if ([self.info.localUserInfo.userRole isEqualToString:@"teacher"]) {
+        return;
+    }
     self.chatView.chatBar.isAllMuted = self.chatManager.isAllMuted;
     self.chatView.chatBar.isMuted = self.chatManager.isMuted;
 }
@@ -441,5 +448,10 @@ static const NSString* kChatRoomId = @"chatroomId";
 - (void)msgWillSend:(NSString *)aMsgText
 {
     [self.chatManager sendCommonTextMsg:aMsgText];
+}
+
+- (void)imageDataWillSend:(NSData*)aImageData
+{
+    [self.chatManager sendImageMsgWithData:aImageData msgType:ChatMsgTypeCommon asker:nil];
 }
 @end

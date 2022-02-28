@@ -8,13 +8,59 @@
 import AgoraUIBaseViews
 import Masonry
 
+struct AgoraCloudCellInfo {
+    let imageName: String
+    let name: String
+    
+    static var empty: AgoraCloudCellInfo {
+        AgoraCloudCellInfo(imageName: "",
+                           name: "")
+    }
+    
+    init(imageName: String,
+         name: String) {
+        self.imageName = imageName
+        self.name = name
+    }
+    
+    init(fileItem: CloudServerApi.FileItem) {
+        self.imageName = AgoraCloudCellInfo.imageName(ext: fileItem.ext)
+        self.name = fileItem.resourceName
+    }
+
+    init(courseware: AgoraCloudCourseware) {
+        self.imageName = AgoraCloudCellInfo.imageName(ext: "ext")
+        self.name = courseware.resourceName
+    }
+
+    static func imageName(ext: String) -> String {
+        switch ext {
+        case "pptx", "ppt", "pptm":
+            return "format-PPT"
+        case "docx", "doc":
+            return "format-word"
+        case "xlsx", "xls", "csv":
+            return "format-excel"
+        case "pdf":
+            return "format-pdf"
+        case "jpeg", "jpg", "png", "bmp":
+            return "format-pic"
+        case "mp3", "wav", "wma", "aac", "flac", "m4a", "oga", "opu":
+            return "format-audio"
+        case "mp4", "3gp", "mgp", "mpeg", "3g2", "avi", "flv", "wmv", "h264",
+            "m4v", "mj2", "mov", "ogg", "ogv", "rm", "qt", "vob", "webm":
+            return "format-video"
+        default:
+            return "format-unknown"
+        }
+    }
+}
+
 class AgoraCloudCell: AgoraBaseUITableViewCell {
     
     private let iconImageView = AgoraBaseUIImageView(frame: .zero)
     private let nameLabel = AgoraBaseUILabel()
-    private let sizeLabel = AgoraBaseUILabel()
-    private let timeLabel = AgoraBaseUILabel()
-    private var info: Info = .empty
+    private var info: AgoraCloudCellInfo = .empty
     
     override init(style: UITableViewCell.CellStyle,
                   reuseIdentifier: String?) {
@@ -32,22 +78,12 @@ class AgoraCloudCell: AgoraBaseUITableViewCell {
     }
     
     private func setup() {
-        nameLabel.text = "文件名"
-        sizeLabel.text = "大小"
-        timeLabel.text = "修改时间"
-        
         nameLabel.textColor = UIColor(hex: 0x191919)
-        sizeLabel.textColor = UIColor(hex: 0x586376)
-        timeLabel.textColor = UIColor(hex: 0x586376)
         
         
         nameLabel.font = .systemFont(ofSize: 13)
-        sizeLabel.font = .systemFont(ofSize: 13)
-        timeLabel.font = .systemFont(ofSize: 13)
         
         contentView.addSubview(nameLabel)
-        contentView.addSubview(sizeLabel)
-        contentView.addSubview(timeLabel)
         contentView.addSubview(iconImageView)
     }
     
@@ -63,42 +99,14 @@ class AgoraCloudCell: AgoraBaseUITableViewCell {
             make?.left.equalTo()(self.iconImageView.mas_right)?.offset()(9)
             make?.centerY.equalTo()(self.contentView)
         }
-        
-        timeLabel.mas_makeConstraints { make in
-            make?.centerY.equalTo()(self.contentView)
-            make?.left.equalTo()(self.mas_right)?.offset()(-150)
-        }
-        
-        sizeLabel.mas_makeConstraints { make in
-            make?.centerY.equalTo()(self.contentView)
-            make?.left.equalTo()(self.timeLabel.mas_left)?.offset()(-80)
-        }
     }
     
     private func commonInit() {}
     
-    func set(info: Info) {
+    func set(info: AgoraCloudCellInfo) {
         self.info = info
         iconImageView.image = GetWidgetImage(object: self,
                                              info.imageName)
         nameLabel.text = info.name
-        sizeLabel.text = info.sizeString
-        timeLabel.text = info.timeString
-    }
-}
-
-extension AgoraCloudCell {
-    struct Info {
-        let imageName: String
-        let name: String
-        let sizeString: String
-        let timeString: String
-        
-        static var empty: Info {
-            Info(imageName: "",
-                 name: "",
-                 sizeString: "",
-                 timeString: "")
-        }
     }
 }

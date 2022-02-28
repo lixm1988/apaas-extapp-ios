@@ -7,6 +7,12 @@
 
 import Foundation
 
+struct AgoraAppBaseInfo {
+    let agoraAppId: String
+    let token: String
+    let host: String
+}
+
 protocol Convertable: Codable {
     
 }
@@ -54,12 +60,39 @@ extension Dictionary {
 }
 
 extension String {
-    func json() -> [String: Any]? {
-        guard let data = self.data(using: .utf8) else {
-            return nil
-        }
+    func toDic() -> [String: Any]? {
+        guard let data = self.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data,
+                                                             options: [.mutableContainers]),
+              let dic = object as? [String: Any] else {
+                  return nil
+              }
         
-        return data.json()
+        return dic
+    }
+    
+    func toArr() -> [Any]? {
+        guard let data = self.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data,
+                                                             options: [.mutableContainers]),
+              let arr = object as? [Any] else {
+                  return nil
+              }
+        
+        return arr
+    }
+    
+    func toAppBaseInfo() -> AgoraAppBaseInfo? {
+        guard let dic = self.toDic(),
+              let baseInfoDic = dic["keys"] as? [String: String],
+              let appId = baseInfoDic["agoraAppId"] as? String,
+              let token = baseInfoDic["token"] as? String,
+              let host = baseInfoDic["host"] as? String else {
+                  return nil
+              }
+        return AgoraAppBaseInfo(agoraAppId: appId,
+                                token: token,
+                                host: host)
     }
 }
 
@@ -76,21 +109,42 @@ extension Decodable {
     }
 }
 
-extension Data {
-    func json() -> [String: Any]? {
-        guard let object = try? JSONSerialization.jsonObject(with: self,
-                                                             options: [.mutableContainers]) else {
-            return nil
+extension Double {
+    /// will return 970B or 1.3K or 1.3M
+    var toDataSizeUnitString: String {
+        if self < 1024 {
+            return "\(self.roundTo(places: 1))" + "B"
         }
-        
-        guard let dic = object as? [String: Any] else {
-            return nil
+        else if self < (1024 * 1024) {
+            return "\((self/1024).roundTo(places: 1))" + "K"
         }
-        
-        return dic
+        else {
+            return "\((self/(1024 * 1024)).roundTo(places: 1))" + "M"
+        }
     }
 }
 
+extension TimeInterval {
+    /// YY-MM-DD HH:mm:ss
+    var formatString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "YYYY-MM-DD HH:mm:ss"
+        let date = Date(timeIntervalSince1970: self)
+        return formatter.string(from: date)
+    }
+}
+
+extension Double {
+    /// Rounds the double to decimal places value
+
+    func roundTo(places:Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
+    }
+}
+
+
+// MARK: - resource
 public func GetWidgetImage(object: NSObject,
                            _ name: String) -> UIImage? {
     let resource = "AgoraWidgets"
@@ -106,3 +160,20 @@ public func GetWidgetLocalizableString(object: NSObject,
                                          object: object,
                                          resource: resource)
 }
+
+public func GetWidgetLogFolder() -> String {
+    let cachesFolder = NSSearchPathForDirectoriesInDomains(.cachesDirectory,
+                                                           .userDomainMask,
+                                                           true)[0]
+    let folder = cachesFolder.appending("/AgoraLog")
+    let manager = FileManager.default
+    
+    if !manager.fileExists(atPath: folder,
+                           isDirectory: nil) {
+        try? manager.createDirectory(atPath: folder,
+                                     withIntermediateDirectories: true,
+                                     attributes: nil)
+    }
+    return folder
+}
+

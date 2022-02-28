@@ -43,3 +43,13 @@ ChatRecall = "撤回";
 ChatRecallAMessage = "撤回一条消息";
 ChatMutedByTeacher = "您被%@老师禁止发言了";
 ChatUnmutedByTeacher = "您被%@老师允许发言了";
+ChatPhotoPermissionDisabled = "获取相册图片权限失败";
+ChatImageTooLarge = "图片太大，请选择其他图片";
+
+// Cloud
+CloudFileName = "文件名";
+CloudSearch = "搜索";
+CloudPublicResource = "公共资源";
+CloudPrivateResource = "我的云盘";
+CloudSum = "共";
+CloudItem = "项";

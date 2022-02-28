@@ -45,7 +45,7 @@ struct InitCondition {
         self.dt = AgoraWhiteboardWidgetDT(extra: AgoraWhiteboardExtraInfo.fromExtraDic(widgetInfo.extraInfo),
                                           localUserInfo: widgetInfo.localUserInfo)
         
-        self.logger = AgoraLogger(folderPath: self.dt.logFolder,
+        self.logger = AgoraLogger(folderPath: GetWidgetLogFolder(),
                                   filePrefix: widgetInfo.widgetId,
                                   maximumNumberOfFiles: 5)
         // MARK: 在此修改日志是否打印在控制台,默认为不打印
@@ -70,16 +70,27 @@ struct InitCondition {
         log(.info,
             log: "onMessageReceived:\(message)")
         
-        let signal = message.toSignal()
-        switch signal {
-        case .JoinBoard:
-            initCondition.needJoin = true
-        case .MemberStateChanged(let agoraWhiteboardMemberState):
-            handleMemberState(state: agoraWhiteboardMemberState)
-        case .AudioMixingStateChanged(let agoraBoardAudioMixingData):
-            handleAudioMixing(data: agoraBoardAudioMixingData)
-        default:
-            break
+        if let signal = message.toBoardSignal() {
+            switch signal {
+            case .JoinBoard:
+                initCondition.needJoin = true
+            case .MemberStateChanged(let agoraWhiteboardMemberState):
+                handleMemberState(state: agoraWhiteboardMemberState)
+            case .AudioMixingStateChanged(let agoraBoardAudioMixingData):
+                handleAudioMixing(data: agoraBoardAudioMixingData)
+            case .BoardGrantDataChanged(let list):
+                handleBoardGrant(list:list)
+            case .BoardPageChanged(let changeType):
+                handlePageChange(changeType: changeType)
+            case .BoardStepChanged(let changeType):
+                handleStepChange(changeType: changeType)
+            case .ClearBoard:
+                handleClearBoard()
+            case .OpenCourseware(let courseware):
+                handleOpenCourseware(info: courseware)
+            default:
+                break
+            }
         }
     }
     
@@ -182,7 +193,6 @@ extension AgoraWhiteboardWidget {
         
         DispatchQueue.main.async {
             AgoraWidgetLoading.addLoading(in: self.view)
-            //AgoraLoading.loading()
         }
         log(.info,
             log: "start join")
@@ -220,13 +230,36 @@ extension AgoraWhiteboardWidget {
               let `room` = room else {
             return false
         }
-        room.moveCamera(cameraConfig.toWhiteboard())
+        room.moveCamera(cameraConfig.toNetless())
         return true
     }
     
     func getLocalCameraConfig() -> AgoraWhiteBoardCameraConfig? {
         let path = dt.scenePath.translatePath()
         return dt.localCameraConfigs[path]
+    }
+    
+    // MARK: - message handle
+    func handleOpenCourseware(info: AgoraBoardCoursewareInfo) {
+        var appParam: WhiteAppParam?
+        if info.convert {
+            appParam = WhiteAppParam.createSlideApp("/\(info.resourceUuid)",
+                                                    scenes: info.scenes.toNetless(),
+                                                    title: info.resourceName)
+        } else {
+            appParam = WhiteAppParam.createDocsViewerApp("/\(info.resourceUuid)",
+                                                         scenes: info.scenes.toNetless(),
+                                                         title: info.resourceName)
+        }
+
+        guard let `appParam` = appParam else {
+            return
+        }
+
+        room?.addApp(appParam,
+                     completionHandler: { appId in
+            print("\(appId)")
+        })
     }
     
     func handleMemberState(state: AgoraBoardMemberState) {
@@ -241,13 +274,96 @@ extension AgoraWhiteboardWidget {
                                             errorCode: data.errorCode)
     }
     
+    func handleBoardGrant(list: Array<String>?) {
+        guard let `room` = room else {
+            return
+        }
+        
+        let newState = AgoraWhiteboardGlobalState()
+        newState.materialList = dt.globalState.materialList
+        newState.currentSceneIndex = dt.globalState.currentSceneIndex
+        newState.grantUsers = (list == nil) ? Array<String>() : list!
+        
+        room.setGlobalState(newState)
+    }
+    
+    func handlePageChange(changeType: AgoraBoardPageChangeType) {
+        guard let `room` = room else {
+            return
+        }
+        switch changeType {
+        case .index(let index):
+            room.setSceneIndex(UInt(index),
+                               completionHandler: nil)
+        case .count(let count):
+            if count > dt.page.count {
+                let newIndex = UInt(dt.page.index + 1)
+                // 新增
+                var scenes = [WhiteScene]()
+                for i in dt.page.count ..< count {
+                    scenes.append(WhiteScene(name: "\(info.widgetId)\(newIndex)", ppt: nil))
+                }
+                
+                room.putScenes("/",
+                               scenes: scenes,
+                               index: newIndex)
+                room.setSceneIndex(newIndex) { success, error in
+                    print(success)
+                }
+            } else {
+                // 减少
+                for i in dt.page.count ..< count {
+                    room.removeScenes(dt.scenePath)
+                }
+            }
+        }
+    }
+    
+    func handleStepChange(changeType: AgoraBoardStepChangeType) {
+        guard let `room` = room else {
+            return
+        }
+        switch changeType {
+        case .pre(let count):
+            for _ in 0 ..< count {
+                room.undo()
+            }
+        case .next(let count):
+            for _ in 0 ..< count {
+                room.redo()
+            }
+        default:
+            break
+        }
+    }
+    
+    func handleClearBoard() {
+        guard let `room` = room else {
+            return
+        }
+        // 清屏，保留ppt
+        room.cleanScene(true)
+    }
+    
     func initRoomState(state: WhiteRoomState) {
         guard let `room` = room else {
             return
         }
+        
+        room.disableSerialization(false)
+        
+        if info.localUserInfo.userRole == "teacher" {
+            dt.localGranted = true
+        }
+        
         if let state = state.globalState as? AgoraWhiteboardGlobalState {
             // 发送初始授权状态的消息
-            dt.updateGlobalState(state: state)
+            dt.globalState = state
+        }
+        
+        if let boxState = room.state.windowBoxState,
+           let widgetState = boxState.toWidget(){
+            sendMessage(signal: .WindowStateChanged(widgetState))
         }
         
         dt.currentMemberState = dt.baseMemberState
@@ -291,8 +407,8 @@ extension AgoraWhiteboardWidget {
                 room.scalePpt(toFit: .continuous)
             }
             // page改变
-            //            let pageCount = sceneState.scenes.count
-            //            let pageIndex = sceneState.index
+            dt.page = AgoraBoardPageInfo(index: sceneState.index,
+                                         count: sceneState.scenes.count)
             ifUseLocalCameraConfig()
             
         }
@@ -303,36 +419,4 @@ extension AgoraWhiteboardWidget {
                 dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
             }
     }
-    
-//    
-//    public func pushScenes(dir: String,
-//                           scenes: [AgoraEduContextWhiteScene],
-//                           index: UInt) {
-//        let newScenes = scenes.map({ scene -> WhiteScene in
-//            let src = scene.ppt.src
-//            let size = CGSize(width: CGFloat(scene.ppt.width),
-//                              height: CGFloat(scene.ppt.height))
-//            let previewURL = scene.ppt.previewURL
-//            var pptPage: WhitePptPage!
-//            if let url = previewURL {
-//                pptPage = WhitePptPage.init(src: src,
-//                                            preview: url,
-//                                            size: size)
-//            }
-//            else {
-//                pptPage = WhitePptPage.init(src: src,
-//                                            size: size)
-//            }
-//            return WhiteScene(name: scene.name,
-//                              ppt: pptPage)
-//        })
-//        
-//        manager?.putScenes(dir,
-//                           scenes: newScenes,
-//                           index: index)
-//    }
-//    
-//    public func getCoursewares() -> [AgoraEduContextCourseware] {
-//        return dt.getCoursewares()
-//    }
 }

@@ -14,6 +14,8 @@ protocol AGBoardWidgetDTDelegate: NSObjectProtocol {
     
     func onScenePathChanged(path: String)
     func onGrantUsersChanged(grantUsers: [String])
+    func onPageIndexChanged(index: Int)
+    func onPageCountChanged(count: Int)
     
     func onConfigComplete()
 }
@@ -42,21 +44,36 @@ class AgoraWhiteboardWidgetDT {
 
     var scenePath = "" {
         didSet {
-            delegate?.onScenePathChanged(path: scenePath)
+            if scenePath != oldValue {
+                delegate?.onScenePathChanged(path: scenePath)
+            }
         }
     }
     
-    private var globalState = AgoraWhiteboardGlobalState() {
+    var page = AgoraBoardPageInfo(index: 0,
+                                  count: 0) {
         didSet {
-            if globalState.grantUsers.count != oldValue.grantUsers.count {
-                if globalState.grantUsers.contains(localUserInfo.userUuid) {
-                    localGranted = true
-                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: true)
-                } else {
-                    localGranted = false
-                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: false)
+            if page.index != oldValue.index {
+                delegate?.onPageIndexChanged(index: page.index)
+            }
+            if page.count != oldValue.count {
+                delegate?.onPageCountChanged(count: page.count)
+            }
+        }
+    }
+    
+    var globalState = AgoraWhiteboardGlobalState() {
+        didSet {
+            if globalState.grantUsers != oldValue.grantUsers {
+                if localUserInfo.userRole != "teacher" {
+                    // 若为学生，涉及localGranted
+                    if globalState.grantUsers.contains(localUserInfo.userUuid) {
+                        localGranted = true                        
+                    } else {
+                        localGranted = false
+                    }
                 }
-                
+
                 delegate?.onGrantUsersChanged(grantUsers: globalState.grantUsers)
             }
         }
@@ -69,7 +86,11 @@ class AgoraWhiteboardWidgetDT {
     // from properties
     var localCameraConfigs = [String: AgoraWhiteBoardCameraConfig]()
 
-    var localGranted: Bool = false
+    var localGranted: Bool = false {
+        didSet {
+            delegate?.onLocalGrantedChangedForBoardHandle(localGranted: localGranted)
+        }
+    }
     
     // config
     var propsExtra: AgoraWhiteboardPropExtra? {
@@ -87,35 +108,15 @@ class AgoraWhiteboardWidgetDT {
     var configExtra: AgoraWhiteboardExtraInfo
     var localUserInfo: AgoraWidgetUserInfo
     
-    lazy var logFolder: String = {
-        let cachesFolder = NSSearchPathForDirectoriesInDomains(.cachesDirectory,
-                                                               .userDomainMask,
-                                                               true)[0]
-        let folder = cachesFolder.appending("/AgoraLog")
-        let manager = FileManager.default
-        
-        if !manager.fileExists(atPath: folder,
-                               isDirectory: nil) {
-            try? manager.createDirectory(atPath: folder,
-                                         withIntermediateDirectories: true,
-                                         attributes: nil)
-        }
-        return folder
-    }()
-    
     init(extra: AgoraWhiteboardExtraInfo,
          localUserInfo: AgoraWidgetUserInfo) {
         self.configExtra = extra
         self.localUserInfo = localUserInfo
     }
     
-    func updateGlobalState(state: AgoraWhiteboardGlobalState) {
-        globalState = state
-    }
-    
     func updateMemberState(state: AgoraBoardMemberState) {
         if let tool = state.activeApplianceType {
-            currentMemberState?.currentApplianceName = tool.toWhiteboard()
+            currentMemberState?.currentApplianceName = tool.toNetless()
         }
         
         if let colors = state.strokeColor {
@@ -132,6 +133,10 @@ class AgoraWhiteboardWidgetDT {
         
         if let textSize = state.textSize {
             currentMemberState?.textSize = NSNumber(value: textSize)
+        }
+        
+        if let shape = state.shapeType {
+            currentMemberState?.shapeType = shape.toNetless()
         }
     }
     

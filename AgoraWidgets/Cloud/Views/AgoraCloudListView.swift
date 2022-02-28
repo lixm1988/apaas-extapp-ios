@@ -12,48 +12,35 @@ protocol AgoraCloudListViewDelegate: NSObjectProtocol {
     func agoraCloudListViewDidSelectedIndex(index: Int)
 }
 
-class AgoraCloudListView: AgoraBaseUIView, UITableViewDataSource, UITableViewDelegate {
-    typealias Info = AgoraCloudCell.Info
+class AgoraCloudListView: AgoraBaseUITableView, UITableViewDataSource, UITableViewDelegate {
+
     private let tableView = AgoraBaseUITableView()
-    private let headerView = AgoraCloudHeaderView(frame: .zero)
-    private var infos = [Info]()
-    weak var delegate: AgoraCloudListViewDelegate?
+    private var infos = [AgoraCloudCellInfo]()
+    weak var listDelegate: AgoraCloudListViewDelegate?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-        initLayout()
-        commonInit()
+    
+    override init(frame: CGRect,
+                  style: UITableView.Style) {
+        super.init(frame: frame,
+                   style: style)
+        contentInset = .zero
+        backgroundColor = .white
+        tableFooterView = AgoraBaseUIView()
+        separatorInset = .init(top: 0, left: 0, bottom: 0, right: 0)
+        
+        register(AgoraCloudCell.self,
+                           forCellReuseIdentifier: "AgoraCloudCell")
+        dataSource = self
+        delegate = self
+        reloadData()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    private func setup() {
-        tableView.contentInset = .zero
-        tableView.backgroundColor = .white
-        tableView.tableFooterView = AgoraBaseUIView()
-        tableView.separatorInset = .init(top: 0, left: 0, bottom: 0, right: 0)
-        addSubview(tableView)
-    }
-    
-    private func commonInit() {
-        tableView.register(AgoraCloudCell.self,
-                           forCellReuseIdentifier: "AgoraCloudCell")
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.reloadData()
-    }
-    
-    private func initLayout() {
-        tableView.mas_makeConstraints { make in
-            make?.left.and().right().and().top().and().bottom().equalTo()(self)
-        }
-    }
-    
-    func update(infos: [Info]) {
-        self.infos = infos
+
+    func update(infos: [AgoraCloudCellInfo]?) {
+        self.infos = infos ?? [AgoraCloudCellInfo]()
         tableView.reloadData()
     }
     
@@ -75,7 +62,7 @@ class AgoraCloudListView: AgoraBaseUIView, UITableViewDataSource, UITableViewDel
                          didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath,
                               animated: true)
-        delegate?.agoraCloudListViewDidSelectedIndex(index: indexPath.row)
+        listDelegate?.agoraCloudListViewDidSelectedIndex(index: indexPath.row)
     }
 }
 

@@ -12,18 +12,30 @@ import Whiteboard
 extension WhiteApplianceNameKey {
     func toWidget() -> AgoraBoardToolType {
         switch self {
-        case .ApplianceSelector: return .Selector
-        case .ApplianceText: return .Text
-        case .ApplianceRectangle: return .Rectangle
-        case .ApplianceEllipse: return .Ellipse
-        case .ApplianceEraser: return .Eraser
-        case .AppliancePencil: return .Pencil
-        case .ApplianceArrow: return .Arrow
-        case .ApplianceStraight: return .Straight
-        case .ApplianceLaserPointer: return .Pointer
-        case .ApplianceClicker: return .Clicker
-        default:
-            return .Selector
+        case .ApplianceSelector:        return .Selector
+        case .ApplianceText:            return .Text
+        case .ApplianceRectangle:       return .Rectangle
+        case .ApplianceEllipse:         return .Ellipse
+        case .ApplianceEraser:          return .Eraser
+        case .AppliancePencil:          return .Pencil
+        case .ApplianceArrow:           return .Arrow
+        case .ApplianceStraight:        return .Straight
+        case .ApplianceLaserPointer:    return .Pointer
+        case .ApplianceClicker:         return .Clicker
+        case .ApplianceShape:           return .Shape
+        default:                        return .Selector
+        }
+    }
+}
+
+extension WhiteApplianceShapeTypeKey {
+    func toWidget() -> AgoraBoardToolShapeType {
+        switch self {
+        case .ApplianceShapeTypeTriangle:       return .Triangle
+        case .ApplianceShapeTypeRhombus:        return .Rhombus
+        case .ApplianceShapeTypePentagram:      return .Pentagram
+        case .ApplianceShapeTypeSpeechBalloon:  return .Ballon
+        default:                                return .Triangle
         }
     }
 }
@@ -76,9 +88,20 @@ extension WhiteReadonlyMemberState {
     }
 }
 
+extension WhiteWindowBoxState {
+    func toWidget() -> AgoraBoardWindowState? {
+        switch self {
+        case .mini:     return .min
+        case .max:      return .max
+        case .normal:   return .normal
+        default:        return nil
+        }
+    }
+}
+
 // MARK: - from Widget
 extension AgoraWhiteBoardCameraConfig {
-    func toWhiteboard() -> WhiteCameraConfig {
+    func toNetless() -> WhiteCameraConfig {
         var cameraState  = WhiteCameraConfig()
         cameraState.centerX = NSNumber(nonretainedObject: self.centerX)
         cameraState.centerY = NSNumber(nonretainedObject:self.centerY)
@@ -88,7 +111,7 @@ extension AgoraWhiteBoardCameraConfig {
 }
 
 extension AgoraBoardToolType {
-    func toWhiteboard() -> WhiteApplianceNameKey {
+    func toNetless() -> WhiteApplianceNameKey {
         switch self {
         case .Selector:     return .ApplianceSelector
         case .Text:         return .ApplianceText
@@ -100,8 +123,20 @@ extension AgoraBoardToolType {
         case .Straight:     return .ApplianceStraight
         case .Pointer:      return .ApplianceLaserPointer
         case .Clicker:      return .ApplianceClicker
+        case .Shape:        return .ApplianceShape
         default:
             return .ApplianceSelector
+        }
+    }
+}
+
+extension AgoraBoardToolShapeType {
+    func toNetless() -> WhiteApplianceShapeTypeKey {
+        switch self {
+        case .Triangle:     return .ApplianceShapeTypeTriangle
+        case .Rhombus:      return .ApplianceShapeTypeRhombus
+        case .Pentagram:    return .ApplianceShapeTypePentagram
+        case .Ballon:       return .ApplianceShapeTypeSpeechBalloon
         }
     }
 }
@@ -112,6 +147,7 @@ extension AgoraBoardMemberState {
         var colorArr = Array<Int>()
         var strokeWidth: Int?
         var textSize: Int?
+        var shape: AgoraBoardToolShapeType?
 
         state.strokeColor.forEach { number in
             colorArr.append(number.intValue)
@@ -124,25 +160,26 @@ extension AgoraBoardMemberState {
         if let stateTextSize = state.textSize {
             textSize = stateTextSize.intValue
         }
+        
+        if let shapeType = state.shapeType {
+            shape = shapeType.toWidget()
+        }
 
-        let agState = AgoraBoardMemberState(activeApplianceType: toolType,
-                                                strokeColor: colorArr,
-                                                strokeWidth: strokeWidth,
-                                                textSize: textSize)
         self.init(activeApplianceType: toolType,
                   strokeColor: colorArr,
                   strokeWidth: strokeWidth,
-                  textSize: textSize)
+                  textSize: textSize,
+                  shapeType: shape)
     }
     
-    func toWhiteboard(oriState: WhiteMemberState) -> WhiteMemberState {
-        // TODO: 数据结构转换
+    func toNetless(oriState: WhiteMemberState) -> WhiteMemberState {
         var memberState = WhiteMemberState()
         
-        memberState.currentApplianceName = self.activeApplianceType?.toWhiteboard()
+        memberState.currentApplianceName = self.activeApplianceType?.toNetless()
         memberState.strokeColor = self.strokeColor as [NSNumber]?
         memberState.strokeWidth = self.strokeWidth as NSNumber?
         memberState.textSize = self.textSize as NSNumber?
+        memberState.shapeType = self.shapeType?.toNetless()
         
         return memberState
     }
@@ -164,6 +201,14 @@ extension AgoraBoardInteractionSignal {
             dic["body"] = boardGrantData
         case .BoardAudioMixingRequest(let agoraBoardAudioMixingRequestData):
             dic["body"] = agoraBoardAudioMixingRequestData.toDictionary()
+        case .BoardPageChanged(let page):
+            dic["body"] = page.toDictionary()
+        case .BoardStepChanged(let changeType):
+            dic["body"] = changeType.toDictionary()
+        case .OpenCourseware(let coursewareInfo):
+            dic["body"] = coursewareInfo.toDictionary()
+        case .WindowStateChanged(let state):
+            dic["body"] = state.rawValue
         default:
             break
         }
@@ -181,8 +226,8 @@ extension String {
         }
     }
     
-    func toSignal() -> AgoraBoardInteractionSignal? {
-        guard let dic = self.json(),
+    func toBoardSignal() -> AgoraBoardInteractionSignal? {
+        guard let dic = self.toDic(),
               let signalRaw = dic["signal"] as? Int else {
             return nil
         }
@@ -190,8 +235,20 @@ extension String {
             return .JoinBoard
         }
         
+        if signalRaw == AgoraBoardInteractionSignal.ClearBoard.rawValue {
+            return .ClearBoard
+        }
+        
         if let bodyArr = dic["body"] as? [String] {
             return .BoardGrantDataChanged(bodyArr)
+        }
+        
+        if let bodyInt = dic["body"] as? Int,
+           let type = AgoraBoardInteractionSignal.getType(rawValue: signalRaw) {
+            if type == AgoraBoardWindowState.self,
+            let changeType = AgoraBoardWindowState(rawValue: bodyInt) {
+                return .WindowStateChanged(changeType)
+            }
         }
         
         guard let bodyDic = dic["body"] as? [String:Any],
@@ -221,5 +278,31 @@ extension UIColor {
         return [NSNumber(value: Int(red * 255)),
                 NSNumber(value: Int(green * 255)),
                 NSNumber(value: Int(blue * 255))]
+    }
+}
+
+// MARK: - Cloud to Netless
+extension Array where Element == AgoraBoardWhiteScene {
+    func toNetless() -> [WhiteScene] {
+        var sceneArr = [WhiteScene]()
+        for item in self {
+            var pptPage: WhitePptPage?
+            if let url = item.ppt.previewURL {
+                pptPage = WhitePptPage(src: item.ppt.src,
+                                       preview: url,
+                                       size: CGSize(width: CGFloat(item.ppt.width),
+                                                    height: CGFloat(item.ppt.height)))
+            } else {
+                pptPage = WhitePptPage(src: item.ppt.src,
+                                       size: CGSize(width: CGFloat(item.ppt.width),
+                                                    height: CGFloat(item.ppt.height)))
+            }
+            
+            let scene = WhiteScene(name: item.name,
+                                   ppt: pptPage!)
+            sceneArr.append(scene)
+        }
+        
+        return sceneArr
     }
 }

@@ -9,12 +9,13 @@ import AgoraUIBaseViews
 
 class AgoraCloudView: AgoraBaseUIView {
     let topView = AgoraCloudTopView(frame: .zero)
-    private let headerView = AgoraCloudHeaderView(frame: .zero)
     let listView = AgoraCloudListView(frame: .zero)
+    
+    private var headerView: UIView!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setup()
+        initViews()
         initLayout()
         commonInit()
     }
@@ -23,7 +24,7 @@ class AgoraCloudView: AgoraBaseUIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setup() {
+    private func initViews() {
         backgroundColor = .white
         layer.shadowColor = UIColor(hex: 0x2F4192,
                                     transparency: 0.15)?.cgColor
@@ -31,6 +32,32 @@ class AgoraCloudView: AgoraBaseUIView {
         layer.shadowOpacity = 1
         layer.shadowRadius = 6
         layer.cornerRadius = 6
+        
+        // header view
+        headerView = UIView()
+        let nameLabel = AgoraBaseUILabel()
+        let lineView = AgoraBaseUIView()
+        
+        headerView.backgroundColor = UIColor(hex: 0xF9F9FC)
+        nameLabel.text = GetWidgetLocalizableString(object: self,
+                                                    key: "CloudFileName")
+        
+        nameLabel.textColor = UIColor(hex: 0x191919)
+        nameLabel.font = .systemFont(ofSize: 13)
+        lineView.backgroundColor = UIColor(hex: 0xEEEEF7)
+        
+        headerView.addSubview(nameLabel)
+        headerView.addSubview(lineView)
+        
+        nameLabel.mas_makeConstraints { make in
+            make?.centerY.equalTo()(self.headerView)
+            make?.left.equalTo()(self.headerView)?.offset()(14)
+        }
+        
+        lineView.mas_makeConstraints { make in
+            make?.left.right().bottom().equalTo()(self.headerView)
+            make?.height.equalTo()(1)
+        }
         
         addSubview(topView)
         addSubview(headerView)
@@ -56,10 +83,8 @@ class AgoraCloudView: AgoraBaseUIView {
     }
     
     private func commonInit() {
-        listView.update(infos: [.init(imageName: "",
-                                      name: "我的课件.ppt",
-                                      sizeString: "1.3 M",
-                                      timeString: "2021-09-28 10:31:21")])
+        listView.update(infos: [AgoraCloudCellInfo(imageName: "",
+                                                   name: "我的课件.ppt")])
     }
     
 }

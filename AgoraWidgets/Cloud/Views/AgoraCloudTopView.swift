@@ -9,16 +9,19 @@ import AgoraUIBaseViews
 import Masonry
 
 protocol AgoraCloudTopViewDelegate: NSObjectProtocol {
-    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudTopView.SelectedType)
+    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudCoursewareType)
     func agoraCloudTopViewDidTapCloseButton()
     func agoraCloudTopViewDidTapRefreshButton()
+    func agoraCloudTopViewDidSearch(type: AgoraCloudCoursewareType,
+                                    keyStr: String)
 }
 
 class AgoraCloudTopView: AgoraBaseUIView {
+    /// views
     private let contentView1 = AgoraBaseUIView()
     private let publicAreaButton = AgoraBaseUIButton()
     private let privateAreaButton = AgoraBaseUIButton()
-//    private let closeButton = AgoraBaseUIButton()
+    private let closeButton = AgoraBaseUIButton()
     private let publicAreaIndicatedView = AgoraBaseUIView()
     private let privateAreaIndicatedView = AgoraBaseUIView()
     private let lineView1 = AgoraBaseUIView()
@@ -27,24 +30,27 @@ class AgoraCloudTopView: AgoraBaseUIView {
     private let refreshButton = AgoraBaseUIButton()
     private let pathNameLabel = AgoraBaseUILabel()
     private let fileCountLabel = AgoraBaseUILabel()
+    private let searchBar = UISearchBar()
     private let lineView2 = AgoraBaseUIView()
     
-    private var selectedType: SelectedType = .selectedPublic
+    /// data
+    private var selectedType: AgoraCloudCoursewareType = .publicResource
     private var fileNum = 0
+    
+    /// delegate
     weak var delegate: AgoraCloudTopViewDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setup()
+        initViews()
         initLayout()
-        commonInit()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setup() {
+    private func initViews() {
         /// 上半部分
         contentView1.backgroundColor = UIColor(hex: 0xF9F9FC)
         let buttonNormalColor = UIColor(hex: 0x586376)
@@ -52,20 +58,16 @@ class AgoraCloudTopView: AgoraBaseUIView {
         let indicateViewColor = UIColor(hex: 0x0073FF)
         let lineColor = UIColor(hex: 0xEEEEF7)
         
-        publicAreaButton.setTitle("公共资源",
-                                  for: .normal)
-        publicAreaButton.setTitle("公共资源",
-                                  for: .selected)
+        publicAreaButton.setTitleForAllStates(GetWidgetLocalizableString(object: self,
+                                                             key: "CloudPublicResource"))
         publicAreaButton.titleLabel?.font = .systemFont(ofSize: 12)
         publicAreaButton.setTitleColor(buttonNormalColor,
                                        for: .normal)
         publicAreaButton.setTitleColor(buttonSelectedColor,
                                        for: .selected)
         
-        privateAreaButton.setTitle("我的云盘",
-                                   for: .normal)
-        privateAreaButton.setTitle("我的云盘",
-                                   for: .selected)
+        privateAreaButton.setTitleForAllStates(GetWidgetLocalizableString(object: self,
+                                                                          key: "CloudPrivateResource"))
         privateAreaButton.titleLabel?.font = .systemFont(ofSize: 12)
         privateAreaButton.setTitleColor(buttonNormalColor,
                                         for: .normal)
@@ -77,17 +79,16 @@ class AgoraCloudTopView: AgoraBaseUIView {
         privateAreaIndicatedView.backgroundColor = indicateViewColor
         privateAreaIndicatedView.isHidden = true
         
-        let closeImage = GetWidgetImage(object: self,
-                                        "icon_close")
-//        closeButton.setImage(closeImage,
-//                             for: .normal)
+        closeButton.setImage(GetWidgetImage(object: self,
+                                            "icon_close"),
+                             for: .normal)
         
         lineView1.backgroundColor = lineColor
         
         addSubview(contentView1)
         contentView1.addSubview(publicAreaButton)
         contentView1.addSubview(privateAreaButton)
-//        contentView1.addSubview(closeButton)
+        contentView1.addSubview(closeButton)
         contentView1.addSubview(lineView1)
         contentView1.addSubview(publicAreaIndicatedView)
         contentView1.addSubview(privateAreaIndicatedView)
@@ -109,38 +110,35 @@ class AgoraCloudTopView: AgoraBaseUIView {
         fileCountLabel.font = .systemFont(ofSize: 12)
         fileCountLabel.textAlignment = .right
         
+        searchBar.placeholder = GetWidgetLocalizableString(object: self,
+                                                           key: "CloudSearch")
+        if let seachTextFild = searchBar.value(forKey: "searchField") as? UITextField {
+            seachTextFild.font = .systemFont(ofSize: 12)
+        }
+        searchBar.delegate = self
+        
         lineView2.backgroundColor = lineColor
         
         addSubview(contentView2)
         contentView2.addSubview(refreshButton)
         contentView2.addSubview(pathNameLabel)
         contentView2.addSubview(fileCountLabel)
+        contentView2.addSubview(searchBar)
         contentView2.addSubview(lineView2)
-    }
-    
-    private func commonInit() {
-        publicAreaButton.addTarget(self,
-                                   action: #selector(buttonTap(sender:)),
-                                   for: .touchUpInside)
-        privateAreaButton.addTarget(self,
-                                    action: #selector(buttonTap(sender:)),
-                                    for: .touchUpInside)
-//        closeButton.addTarget(self,
-//                              action: #selector(buttonTap(sender:)),
-//                              for: .touchUpInside)
-        refreshButton.addTarget(self,
-                                action: #selector(buttonTap(sender:)),
-                                for: .touchUpInside)
         
-        config(selectedType: .selectedPublic)
+        for btn in [publicAreaButton,privateAreaButton,closeButton,refreshButton] {
+            btn.addTarget(self,
+                          action: #selector(buttonTap(sender:)),
+                          for: .touchUpInside)
+        }
+        
+        config(selectedType: .publicResource)
     }
     
     private func initLayout() {
         /// 上半部分
         contentView1.mas_makeConstraints { make in
-            make?.left.equalTo()(self.mas_left)
-            make?.right.equalTo()(self.mas_right)
-            make?.top.equalTo()(self.mas_top)
+            make?.left.right().top().equalTo()(self)
             make?.height.equalTo()(30)
         }
         
@@ -169,25 +167,20 @@ class AgoraCloudTopView: AgoraBaseUIView {
             make?.centerX.equalTo()(privateAreaButton.mas_centerX)
         }
         
-//        closeButton.mas_makeConstraints { make in
-//            make?.centerY.equalTo()(self.contentView1)
-//            make?.width.equalTo()(24)
-//            make?.height.equalTo()(24)
-//            make?.right.equalTo()(self.contentView1.mas_right)?.offset()(-10)
-//        }
-        
+        closeButton.mas_makeConstraints { make in
+            make?.centerY.equalTo()(self.contentView1)
+            make?.width.height().equalTo()(24)
+            make?.right.equalTo()(self.contentView1.mas_right)?.offset()(-10)
+        }
+
         lineView1.mas_makeConstraints { make in
-            make?.left.equalTo()(self.contentView1)
-            make?.right.equalTo()(self.contentView1)
-            make?.bottom.equalTo()(self.contentView1)
+            make?.left.right().bottom().equalTo()(self.contentView1)
             make?.height.equalTo()(1)
         }
         
         /// 下半部分
         contentView2.mas_makeConstraints { make in
-            make?.left.equalTo()(self.mas_left)
-            make?.right.equalTo()(self.mas_right)
-            make?.bottom.equalTo()(self.mas_bottom)
+            make?.left.right().bottom().equalTo()(self)
             make?.height.equalTo()(30)
         }
         
@@ -208,29 +201,34 @@ class AgoraCloudTopView: AgoraBaseUIView {
             make?.centerY.equalTo()(self.contentView2)
         }
         
+        searchBar.mas_makeConstraints { make in
+            make?.width.equalTo()(160)
+            make?.height.equalTo()(22)
+            make?.right.equalTo()(self)?.offset()(-15)
+            make?.centerY.equalTo()(self.contentView2.mas_centerY)
+        }
+        
         lineView2.mas_makeConstraints { make in
-            make?.left.equalTo()(self.contentView2)
-            make?.right.equalTo()(self.contentView2)
-            make?.bottom.equalTo()(self.contentView2)
+            make?.left.right().bottom().equalTo()(self.contentView2)
             make?.height.equalTo()(1)
         }
     }
     
     @objc func buttonTap(sender: UIButton) {
-//        if sender == closeButton {
-//            delegate?.agoraCloudTopViewDidTapCloseButton()
-//            return
-//        }
+        if sender == closeButton {
+            delegate?.agoraCloudTopViewDidTapCloseButton()
+            return
+        }
         
         if sender == publicAreaButton {
-            config(selectedType: .selectedPublic)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .selectedPublic)
+            config(selectedType: .publicResource)
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .publicResource)
             return
         }
         
         if sender == privateAreaButton {
-            config(selectedType: .selectedPrivate)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .selectedPrivate)
+            config(selectedType: .privateResource)
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .privateResource)
             return
         }
         
@@ -240,39 +238,43 @@ class AgoraCloudTopView: AgoraBaseUIView {
         }
     }
     
-    private func config(selectedType: SelectedType) {
+    private func config(selectedType: AgoraCloudCoursewareType) {
         self.selectedType = selectedType
         switch selectedType {
-        case .selectedPublic:
+        case .publicResource:
             privateAreaButton.isSelected = false
             publicAreaButton.isSelected = true
             privateAreaIndicatedView.isHidden = true
             publicAreaIndicatedView.isHidden = false
-            break
-        case .selectedPrivate:
+            pathNameLabel.text = GetWidgetLocalizableString(object: self,
+                                                            key: "CloudPublicResource")
+        case .privateResource:
             publicAreaButton.isSelected = false
             privateAreaButton.isSelected = true
             publicAreaIndicatedView.isHidden = true
             privateAreaIndicatedView.isHidden = false
+            pathNameLabel.text = GetWidgetLocalizableString(object: self,
+                                                            key: "CloudPrivateResource")
             break
         }
-        pathNameLabel.text = selectedType == .selectedPublic ? "公共资源 > 课件" : "我的云盘 > 课件"
     }
     
     func set(fileNum: Int) {
-        fileCountLabel.text = "共\(fileNum)项"
-    }
-    
-    var currentSelectedType: SelectedType {
-        return selectedType
+        let sumText = GetWidgetLocalizableString(object: self,
+                                                 key: "CloudSum")
+        let itemText = GetWidgetLocalizableString(object: self,
+                                                  key: "CloudItem")
+        fileCountLabel.text = "\(sumText)\(fileNum)\(itemText)"
     }
 }
 
-extension AgoraCloudTopView {
-    enum SelectedType {
-        /// 公共资源
-        case selectedPublic
-        /// 我的云盘
-        case selectedPrivate
+// MARK: - UISearchBarDelegate
+extension AgoraCloudTopView: UISearchBarDelegate {
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        guard let text = searchBar.text else {
+            return
+        }
+        delegate?.agoraCloudTopViewDidSearch(type: self.selectedType,
+                                             keyStr: text)
     }
 }

@@ -8,20 +8,25 @@
 #import "ChatBar.h"
 #import "InputingView.h"
 #import <AgoraWidgets/AgoraWidgets-Swift.h>
+#import <Photos/Photos.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+#import <WHToast/WHToast.h>
 @import AgoraUIBaseViews;
 
 #define CONTAINVIEW_HEIGHT 40
 #define SENDBUTTON_HEIGHT 30
 #define SENDBUTTON_WIDTH 40
 #define INPUT_WIDTH 120
-#define EMOJIBUTTON_WIDTH 40
+#define EMOJIBUTTON_WIDTH 30
 
-@interface ChatBar ()<InputingViewDelegate>
+@interface ChatBar ()<InputingViewDelegate,UIImagePickerControllerDelegate>
 @property (nonatomic,strong) UIButton* inputButton;
 @property (nonatomic,strong) UIButton* emojiButton;
 @property (nonatomic,strong) InputingView* inputingView;
 @property (nonatomic,strong) UIButton* exitInputButton;
 @property (nonatomic) CGRect oldframe;
+@property (nonatomic, strong) UIImagePickerController *imagePicker;
+@property (nonatomic,strong) UIButton* imageButton;
 @end
 
 @implementation ChatBar
@@ -57,6 +62,15 @@
                          action:@selector(emojiButtonAction)
                forControlEvents:UIControlEventTouchUpInside];
     
+    self.imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [self.imageButton setImage:[UIImage ag_image:@"icon_image"]
+                      forState:UIControlStateNormal];
+    self.imageButton.contentMode = UIViewContentModeScaleAspectFit;
+    [self addSubview:self.imageButton];
+    [self.imageButton addTarget:self
+                         action:@selector(imageButtonAction)
+               forControlEvents:UIControlEventTouchUpInside];
+    
     UIWindow * window=[[[UIApplication sharedApplication] delegate] window];
     self.inputingView = [[InputingView alloc] initWithFrame:CGRectMake(0, 100, window.frame.size.width, 40)];
     self.inputingView.delegate = self;
@@ -83,13 +97,20 @@
     [super layoutSubviews];
     self.oldframe = self.frame;
     
-    self.inputButton.frame = CGRectMake(10,0,self.bounds.size.width - EMOJIBUTTON_WIDTH - SENDBUTTON_WIDTH - 10,
-                                           CONTAINVIEW_HEIGHT);
+    NSInteger imageWidth = 20;
+        
+    self.inputButton.frame = CGRectMake(10,0,self.bounds.size.width - EMOJIBUTTON_WIDTH*2 - 5,
+                                               self.bounds.size.height);
     
-    self.emojiButton.frame = CGRectMake(self.bounds.size.width - EMOJIBUTTON_WIDTH,
-                                        8,
-                                        24,
-                                        24);
+    self.imageButton.frame = CGRectMake(self.bounds.size.width - EMOJIBUTTON_WIDTH-5,
+                                            (self.bounds.size.height-imageWidth)/2,
+                                        imageWidth,
+                                        imageWidth);
+    
+    self.emojiButton.frame = CGRectMake(self.bounds.size.width - EMOJIBUTTON_WIDTH * 2-5,
+                                        (self.bounds.size.height-imageWidth)/2,
+                                        imageWidth,
+                                        imageWidth);
 }
 
 - (void)InputAction
@@ -161,5 +182,147 @@
     
 }
 
+#pragma mark - UIImagePickerControllerDelegate
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
+    if ([mediaType isEqualToString:(NSString *)kUTTypeMovie]) {
+        [WHToast showErrorWithMessage:@"Please select a photo" duration:2 finishHandler:nil];
+    }else{
+        NSURL *url = info[UIImagePickerControllerReferenceURL];
+        if (url == nil) {
+            UIImage* image = [info objectForKey:UIImagePickerControllerOriginalImage];
+            if(image) {
+                NSData *data = UIImageJPEGRepresentation(image, 1);
+                [self.delegate imageDataWillSend:data];
+            }
+        }else{
+            PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+            if(result.count == 0){
+                [WHToast showErrorWithMessage:[@"ChatPhotoPermissionDisabled" ag_localizedIn:@"AgoraWidgets"] duration:2 finishHandler:nil];
+            }else{
+                [result enumerateObjectsUsingBlock:^(PHAsset *asset , NSUInteger idx, BOOL *stop){
+                    if (asset) {
+                        [[PHImageManager defaultManager] requestImageDataForAsset:asset options:nil resultHandler:^(NSData *data, NSString *uti, UIImageOrientation orientation, NSDictionary *dic){
+                            if (data != nil) {
+                                [self.delegate imageDataWillSend:data];
+                            } else {
+                                [WHToast showErrorWithMessage:[@"ChatImageTooLarge" ag_localizedIn:@"AgoraWidgets"] duration:2 finishHandler:nil];
+                            }
+                        }];
+                    }
+                }];
+            }
+
+        }
+    
+    }
+        [picker dismissViewControllerAnimated:YES completion:nil];
+}
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)imageButtonDidClick
+{
+    [self imageButtonAction];
+}
+
+- (void)imageButtonAction
+{
+    [self pickImageAndSend];
+}
+
+- (UIImagePickerController *)imagePicker
+{
+    if (_imagePicker == nil) {
+        _imagePicker = [[UIImagePickerController alloc] init];
+        _imagePicker.modalPresentationStyle = UIModalPresentationOverFullScreen;
+        _imagePicker.delegate = self;
+    }
+    
+    return _imagePicker;
+}
+
+- (void)pickImageAndSend
+{
+    PHAuthorizationStatus permissions = -1;
+    if (@available(iOS 14, *)) {
+        permissions = PHAuthorizationStatusLimited;
+    }
+    __weak typeof(self) weakself = self;
+    void (^callback)(PHAuthorizationStatus status) = ^(PHAuthorizationStatus status) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (status == permissions) {
+                //limit权限
+                weakself.imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                weakself.imagePicker.mediaTypes = @[(NSString *)kUTTypeImage, (NSString *)kUTTypeMovie];
+                UIViewController *viewController = [[weakself class] findCurrentShowingViewController];
+                [viewController presentViewController:weakself.imagePicker animated:YES completion:nil];
+                return;
+            }
+            switch (status) {
+                case PHAuthorizationStatusAuthorized: //已获取权限
+                {
+                    weakself.imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                    weakself.imagePicker.mediaTypes = @[(NSString *)kUTTypeImage];
+                    UIViewController *viewController = [[weakself class] findCurrentShowingViewController];
+                    [viewController presentViewController:weakself.imagePicker animated:YES completion:nil];
+                }
+                    break;
+                case PHAuthorizationStatusDenied: //用户已经明确否认了这一照片数据的应用程序访问
+                case PHAuthorizationStatusRestricted://此应用程序没有被授权访问的照片数据。可能是家长控制权限
+                    [WHToast showErrorWithMessage:[@"ChatPhotoPermissionDisabled" ag_localizedIn:@"AgoraWidgets"] duration:2 finishHandler:^{
+                            
+                    }];
+                    break;
+                    
+                default:
+                    
+                    break;
+            }
+        });
+    };
+    if (@available(iOS 14, *)) {
+        [PHPhotoLibrary requestAuthorizationForAccessLevel:PHAccessLevelReadWrite handler:callback];
+    }else
+        [PHPhotoLibrary requestAuthorization:callback];
+    
+}
+
+// 获取当前显示的 UIViewController
++ (UIViewController *)findCurrentShowingViewController {
+    //获得当前活动窗口的根视图
+    UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
+    UIViewController *currentShowingVC = [self findCurrentShowingViewControllerFrom:vc];
+    return currentShowingVC;
+}
++ (UIViewController *)findCurrentShowingViewControllerFrom:(UIViewController *)vc
+{
+    // 递归方法 Recursive method
+    UIViewController *currentShowingVC;
+    if ([vc presentedViewController]) {
+        // 当前视图是被presented出来的
+        UIViewController *nextRootVC = [vc presentedViewController];
+        currentShowingVC = [self findCurrentShowingViewControllerFrom:nextRootVC];
+
+    } else if ([vc isKindOfClass:[UITabBarController class]]) {
+        // 根视图为UITabBarController
+        UIViewController *nextRootVC = [(UITabBarController *)vc selectedViewController];
+        currentShowingVC = [self findCurrentShowingViewControllerFrom:nextRootVC];
+
+    } else if ([vc isKindOfClass:[UINavigationController class]]){
+        // 根视图为UINavigationController
+        UIViewController *nextRootVC = [(UINavigationController *)vc visibleViewController];
+        currentShowingVC = [self findCurrentShowingViewControllerFrom:nextRootVC];
+
+    } else {
+        // 根视图为非导航类
+        currentShowingVC = vc;
+    }
+
+    return currentShowingVC;
+}
 
 @end

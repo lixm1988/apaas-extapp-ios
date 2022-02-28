@@ -41,7 +41,7 @@ fileprivate class AgoraRtmDataModel: NSObject {
     }
     
     public override func onMessageReceived(_ message: String) {
-        let dict = message.json()
+        let dict = message.toDic()
         if let d = dict?["keys"] as? [String: Any] {
             self.updateDataModelWithDict(d)
         } else if let d = dict?["message"] as? [String: Any] {

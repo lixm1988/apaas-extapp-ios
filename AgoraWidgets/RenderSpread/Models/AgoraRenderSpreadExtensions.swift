@@ -25,7 +25,7 @@ extension AgoraSpreadInteractionSignal {
 
 extension String {
     func vcMessageToSignal() -> AgoraSpreadInteractionSignal? {
-        guard let dic = self.json(),
+        guard let dic = self.toDic(),
               let signalRaw = dic["signal"] as? Int else {
             return nil
         }

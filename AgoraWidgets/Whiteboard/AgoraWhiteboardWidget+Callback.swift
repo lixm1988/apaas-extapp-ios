@@ -17,6 +17,11 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
             return
         }
         
+        if let boxState = modifyState.windowBoxState,
+           let widgetState = boxState.toWidget(){
+            sendMessage(signal: .WindowStateChanged(widgetState))
+        }
+        
         // 老师离开
         if let broadcastState = modifyState.broadcastState {
             if broadcastState.broadcasterId == nil {
@@ -31,7 +36,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         }
 
         if let state = modifyState.globalState as? AgoraWhiteboardGlobalState {
-            dt.updateGlobalState(state: state)
+            dt.globalState = state
             return
         }
         
@@ -58,8 +63,8 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
                 room.scalePpt(toFit: .continuous)
             }
             // page改变
-//            let pageCount = sceneState.scenes.count
-//            let pageIndex = sceneState.index
+            dt.page = AgoraBoardPageInfo(index: sceneState.index,
+                                         count: sceneState.scenes.count)
             ifUseLocalCameraConfig()
             return
         }
@@ -83,6 +88,18 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         if phase == .disconnected {
             self.joinWhiteboard()
         }
+    }
+    
+    public func fireCanRedoStepsUpdate(_ canRedoSteps: Int) {
+        log(.info,
+            log: "canRedoSteps:\(canRedoSteps)")
+        sendMessage(signal: .BoardStepChanged(.redoCount(canRedoSteps)))
+    }
+    
+    public func fireCanUndoStepsUpdate(_ canUndoSteps: Int) {
+        log(.info,
+            log: "canUndoSteps:\(canUndoSteps)")
+        sendMessage(signal: .BoardStepChanged(.undoCount(canUndoSteps)))
     }
 }
 
@@ -153,7 +170,6 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
             guard let `self` = self else {
                 return
             }
-            self.dt.localGranted = isWritable
             if let error = error {
                 self.log(.error,
                          log: "setWritable error: \(error.localizedDescription)")
@@ -169,6 +185,20 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
                 }
             }
         })
+    }
+    
+    func onPageIndexChanged(index: Int) {
+        log(.info,
+            log: "page index changed: \(index)")
+        let changeType = AgoraBoardPageChangeType.index(index)
+        sendMessage(signal: .BoardPageChanged(changeType))
+    }
+    
+    func onPageCountChanged(count: Int) {
+        log(.info,
+            log: "page count changed: \(count)")
+        let changeType = AgoraBoardPageChangeType.count(count)
+        sendMessage(signal: .BoardPageChanged(changeType))
     }
     
     func onScenePathChanged(path: String) {
