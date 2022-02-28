@@ -8,16 +8,11 @@
 import Foundation
 
 struct AgoraSpreadExtraModel: Convertable, Equatable {
-    var initial: Bool = true
     var userUuid: String = ""
-    var streamUuid: String = ""
-    var operatorId: String = ""
     
     static func == (lhs: Self,
                     rhs: Self) -> Bool {
-        if lhs.initial == rhs.initial,
-           lhs.userUuid == rhs.userUuid,
-           lhs.streamUuid == rhs.streamUuid {
+        if lhs.userUuid == rhs.userUuid {
             return true
         }
         return false

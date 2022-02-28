@@ -91,8 +91,9 @@ fileprivate extension AgoraRenderSpreadWidget {
               curFrame != .zero else {
                   return
               }
+        let streamId = info.widgetId.components(separatedBy: "-")[1]
         let user = AgoraSpreadUserInfo(userId: curExtra.userUuid,
-                                       streamId: curExtra.streamUuid)
+                                       streamId: streamId)
         let renderInfo = AgoraSpreadRenderInfo(frame: curFrame,
                                                user: user)
         if initedFlag {
