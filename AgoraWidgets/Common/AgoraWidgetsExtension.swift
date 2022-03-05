@@ -131,6 +131,30 @@ extension TimeInterval {
         let date = Date(timeIntervalSince1970: self)
         return formatter.string(from: date)
     }
+    
+    var formatStringHMS: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        let date = Date(timeIntervalSince1970: self)
+        return formatter.string(from: date)
+    }
+}
+
+// 将 AgoraWidgetInfo.syncFrame 转化为 具体是显示在界面上的 frame
+extension CGRect {
+    func displayFrameFromSyncFrame(superView: UIView,
+                                   syncFrame: CGRect) -> CGRect {
+        let width = superView.width * syncFrame.width
+        let height = superView.height * syncFrame.height
+        let MEDx = superView.width - width
+        let MEDy = superView.height - height
+        let x = MEDx * syncFrame.minX
+        let y = MEDy * syncFrame.minY
+        return CGRect(x: x,
+                      y: y,
+                      width: width,
+                      height: height)
+    }
 }
 
 extension Double {
