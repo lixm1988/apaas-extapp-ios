@@ -5,8 +5,8 @@
 //  Created by LYY on 2021/12/8.
 //
 
-import Foundation
 import AgoraWidget
+import Foundation
 import Whiteboard
 
 protocol AGBoardWidgetDTDelegate: NSObjectProtocol {

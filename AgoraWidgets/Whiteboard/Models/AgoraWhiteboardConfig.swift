@@ -75,7 +75,6 @@ struct AgoraWhiteboardExtraInfo : Convertable {
     var extra: String = ""
 }
 
-
 @objcMembers public class AgoraWhiteboardGlobalState: WhiteGlobalState {
     var materialList: [AgoraWhiteBoardTask]?
     var currentSceneIndex: Int = 0

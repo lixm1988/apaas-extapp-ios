@@ -5,10 +5,10 @@
 //  Created by LYY on 2021/12/2.
 //
 
-import Masonry
+import AgoraWidget
 import Whiteboard
 import AgoraLog
-import AgoraWidget
+import Masonry
 
 struct InitCondition {
     var configComplete = false
@@ -17,12 +17,12 @@ struct InitCondition {
 }
 
 @objcMembers public class AgoraWhiteboardWidget: AgoraBaseWidget {
-
+    
     private(set) var contentView: UIView!
     
     var whiteSDK: WhiteSDK?
     var room: WhiteRoom?
-
+    
     var dt: AgoraWhiteboardWidgetDT
     
     var initMemberStateFlag: Bool = false
@@ -55,7 +55,7 @@ struct InitCondition {
         self.dt.delegate = self
         
         initCondition.needInit = true
-
+        
         if let wbProperties = widgetInfo.roomProperties?.toObj(AgoraWhiteboardPropExtra.self) {
             dt.propsExtra = wbProperties
         }
@@ -141,7 +141,6 @@ struct InitCondition {
     }
 }
 
-
 // MARK: - private
 extension AgoraWhiteboardWidget {
     func sendMessage(signal: AgoraBoardInteractionSignal) {
@@ -207,13 +206,13 @@ extension AgoraWhiteboardWidget {
             guard success, error == nil ,
                   let whiteRoom = room else {
                 self.log(.error,
-                          log: "join room error :\(error?.localizedDescription)")
+                         log: "join room error :\(error?.localizedDescription)")
                 self.dt.reconnectTime += 2
                 self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
             }
             self.log(.info,
-                      log: "join room success")
+                     log: "join room success")
             
             self.room = whiteRoom
             self.initRoomState(state: whiteRoom.state)
@@ -251,15 +250,15 @@ extension AgoraWhiteboardWidget {
                                                          scenes: info.scenes.toNetless(),
                                                          title: info.resourceName)
         }
-
-        guard let `appParam` = appParam else {
+        
+        guard let param = appParam else {
             return
         }
-
-        room?.addApp(appParam,
+        
+        room?.addApp(param,
                      completionHandler: { appId in
-            print("\(appId)")
-        })
+                        print("\(appId)")
+                     })
     }
     
     func handleMemberState(state: AgoraBoardMemberState) {
@@ -413,10 +412,10 @@ extension AgoraWhiteboardWidget {
             
         }
         
-            if let cameraState = state.cameraState,
-               dt.localGranted {
-                // 如果本地被授权，则是本地自己设置的摄像机视角
-                dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
-            }
+        if let cameraState = state.cameraState,
+           dt.localGranted {
+            // 如果本地被授权，则是本地自己设置的摄像机视角
+            dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
+        }
     }
 }
