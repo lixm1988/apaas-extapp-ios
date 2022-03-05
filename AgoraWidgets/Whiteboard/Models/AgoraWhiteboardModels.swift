@@ -206,8 +206,7 @@ enum AgoraBoardPageChangeType: Convertable {
         
         if let type1Value = try? container.decode(Int.self, forKey: .index) {
             self = .index(type1Value)
-        }
-        else{
+        } else {
             let type2Value = try container.decode(Int.self, forKey: .count)
             self = .count(type2Value)
         }

@@ -12,7 +12,7 @@ Pod::Spec.new do |spec|
   spec.swift_versions        = ["5.0", "5.1", "5.2", "5.3", "5.4"]
 
   spec.source       = { :git => "ssh://git@git.agoralab.co/aduc/open-apaas-extapp-ios.git", :tag => "AgoraWidgets_v" + "#{spec.version.to_s}" }
-  spec.source_files = "Common/*.{h,m,swift}","RenderSpread/**/*.{h,m,swift}","Cloud/**/*.{h,m,swift}","Whiteboard/**/*.{h,m,swift}","RtmIM/**/*.{h,m,swift}","ChatWidget/**/*.{h,m,swift}"
+  spec.source_files = "Common/*.{h,m,swift}","RenderSpread/**/*.{h,m,swift}","Cloud/**/*.{h,m,swift}","Whiteboard/**/*.{h,m,swift}","RtmIM/**/*.{h,m,swift}","ChatWidget/**/*.{h,m,swift}","Poller/**/*.{h,m,swift}"
   
   spec.dependency "AgoraUIBaseViews"
   spec.dependency "AgoraWidget"

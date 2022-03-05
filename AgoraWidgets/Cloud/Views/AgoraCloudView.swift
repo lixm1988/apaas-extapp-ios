@@ -7,7 +7,7 @@
 
 import AgoraUIBaseViews
 
-class AgoraCloudView: AgoraBaseUIView {
+class AgoraCloudView: UIView {
     let topView = AgoraCloudTopView(frame: .zero)
     let listView = AgoraCloudListView(frame: .zero)
     
@@ -17,7 +17,6 @@ class AgoraCloudView: AgoraBaseUIView {
         super.init(frame: frame)
         initViews()
         initLayout()
-        commonInit()
     }
     
     required init?(coder: NSCoder) {
@@ -35,8 +34,8 @@ class AgoraCloudView: AgoraBaseUIView {
         
         // header view
         headerView = UIView()
-        let nameLabel = AgoraBaseUILabel()
-        let lineView = AgoraBaseUIView()
+        let nameLabel = UILabel()
+        let lineView = UIView()
         
         headerView.backgroundColor = UIColor(hex: 0xF9F9FC)
         nameLabel.text = GetWidgetLocalizableString(object: self,
@@ -81,12 +80,6 @@ class AgoraCloudView: AgoraBaseUIView {
             make?.top.equalTo()(self.headerView.mas_bottom)
         }
     }
-    
-    private func commonInit() {
-        listView.update(infos: [AgoraCloudCellInfo(imageName: "",
-                                                   name: "我的课件.ppt")])
-    }
-    
 }
 
 

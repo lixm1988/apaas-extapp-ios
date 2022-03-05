@@ -12,12 +12,10 @@ protocol AgoraCloudListViewDelegate: NSObjectProtocol {
     func agoraCloudListViewDidSelectedIndex(index: Int)
 }
 
-class AgoraCloudListView: AgoraBaseUITableView, UITableViewDataSource, UITableViewDelegate {
+class AgoraCloudListView: UITableView {
 
-    private let tableView = AgoraBaseUITableView()
     private var infos = [AgoraCloudCellInfo]()
     weak var listDelegate: AgoraCloudListViewDelegate?
-    
     
     override init(frame: CGRect,
                   style: UITableView.Style) {
@@ -25,11 +23,11 @@ class AgoraCloudListView: AgoraBaseUITableView, UITableViewDataSource, UITableVi
                    style: style)
         contentInset = .zero
         backgroundColor = .white
-        tableFooterView = AgoraBaseUIView()
+        tableFooterView = UIView()
         separatorInset = .init(top: 0, left: 0, bottom: 0, right: 0)
         
         register(AgoraCloudCell.self,
-                           forCellReuseIdentifier: "AgoraCloudCell")
+                 forCellReuseIdentifier: "AgoraCloudCell")
         dataSource = self
         delegate = self
         reloadData()
@@ -41,16 +39,19 @@ class AgoraCloudListView: AgoraBaseUITableView, UITableViewDataSource, UITableVi
 
     func update(infos: [AgoraCloudCellInfo]?) {
         self.infos = infos ?? [AgoraCloudCellInfo]()
-        tableView.reloadData()
+        reloadData()
     }
-    
-    @objc func tableView(_ tableView: UITableView,
-                         numberOfRowsInSection section: Int) -> Int {
+}
+
+// MARK: - UITableViewDataSource, UITableViewDelegate
+extension AgoraCloudListView: UITableViewDataSource, UITableViewDelegate {
+    // MARK: UITableViewDataSource
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return infos.count
     }
     
-    @objc func tableView(_ tableView: UITableView,
-                         cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "AgoraCloudCell",
                                                  for: indexPath) as! AgoraCloudCell
         let info = infos[indexPath.row]
@@ -58,12 +59,12 @@ class AgoraCloudListView: AgoraBaseUITableView, UITableViewDataSource, UITableVi
         return cell
     }
     
-    @objc func tableView(_ tableView: UITableView,
-                         didSelectRowAt indexPath: IndexPath) {
+    // MARK: UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView,
+                   didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath,
                               animated: true)
         listDelegate?.agoraCloudListViewDidSelectedIndex(index: indexPath.row)
     }
 }
-
-

@@ -292,7 +292,7 @@ extension AgoraWhiteboardWidget {
         }
         switch changeType {
         case .index(let index):
-            room.setSceneIndex(UInt(index),
+            room.setSceneIndex(UInt(index < 0 ? 0 : index),
                                completionHandler: nil)
         case .count(let count):
             if count > dt.page.count {

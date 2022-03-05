@@ -70,7 +70,7 @@ class AgoraCloudVM: NSObject {
         let pageNo = currentPageNo
         currentPageNo = pageNo
         serverApi.requestResourceInUser(pageNo: pageNo,
-                                        pageSize: 300) { [weak self](resp) in
+                                        pageSize: 300) { [weak self] (resp) in
             self?.currentRequestingPageNo = nil
             guard let `self` = self else { return }
             self.currentPageNo += 1
@@ -84,7 +84,7 @@ class AgoraCloudVM: NSObject {
             self.privateFiles = temp
             self.changeSelectedType(type: self.selectedType)
         } fail: { [weak self](error) in
-            print(error)
+            // TODO: error handle
             self?.currentRequestingPageNo = nil
         }
     }
@@ -137,7 +137,3 @@ class AgoraCloudVM: NSObject {
         self.publicFiles = publicCoursewares.toConfig()
     }
 }
-
-
-
-

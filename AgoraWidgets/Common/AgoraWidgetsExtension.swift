@@ -26,9 +26,21 @@ extension Convertable {
             dic = try JSONSerialization.jsonObject(with: data,
                                                    options: .allowFragments) as? Dictionary<String, Any>
         } catch {
+            // TODO: error handle
             print(error)
         }
         return dic
+    }
+    
+    public static func decode(_ dic: [String : Any]) -> Self? {
+        guard JSONSerialization.isValidJSONObject(dic),
+              let data = try? JSONSerialization.data(withJSONObject: dic,
+                                                      options: []),
+              let model = try? JSONDecoder().decode(Self.self,
+                                                    from: data) else {
+                  return nil
+              }
+        return model
     }
 }
 
@@ -93,19 +105,6 @@ extension String {
         return AgoraAppBaseInfo(agoraAppId: appId,
                                 token: token,
                                 host: host)
-    }
-}
-
-extension Decodable {
-    public static func decode(_ dic: [String : Any]) -> Self? {
-        guard JSONSerialization.isValidJSONObject(dic),
-              let data = try? JSONSerialization.data(withJSONObject: dic,
-                                                      options: []),
-              let model = try? JSONDecoder().decode(Self.self,
-                                                    from: data) else {
-                  return nil
-              }
-        return model
     }
 }
 
@@ -177,3 +176,8 @@ public func GetWidgetLogFolder() -> String {
     return folder
 }
 
+extension AgoraBaseWidget {
+    var isTeacher: Bool {
+        return info.localUserInfo.userRole == "teacher"
+    }
+}

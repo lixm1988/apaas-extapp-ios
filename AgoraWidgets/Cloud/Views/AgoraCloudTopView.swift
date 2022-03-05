@@ -16,22 +16,22 @@ protocol AgoraCloudTopViewDelegate: NSObjectProtocol {
                                     keyStr: String)
 }
 
-class AgoraCloudTopView: AgoraBaseUIView {
+class AgoraCloudTopView: UIView {
     /// views
-    private let contentView1 = AgoraBaseUIView()
-    private let publicAreaButton = AgoraBaseUIButton()
-    private let privateAreaButton = AgoraBaseUIButton()
-    private let closeButton = AgoraBaseUIButton()
-    private let publicAreaIndicatedView = AgoraBaseUIView()
-    private let privateAreaIndicatedView = AgoraBaseUIView()
-    private let lineView1 = AgoraBaseUIView()
+    private let contentView1 = UIView()
+    private let publicAreaButton = UIButton()
+    private let privateAreaButton = UIButton()
+    private let closeButton = UIButton()
+    private let publicAreaIndicatedView = UIView()
+    private let privateAreaIndicatedView = UIView()
+    private let lineView1 = UIView()
     
-    private let contentView2 = AgoraBaseUIView()
-    private let refreshButton = AgoraBaseUIButton()
-    private let pathNameLabel = AgoraBaseUILabel()
-    private let fileCountLabel = AgoraBaseUILabel()
+    private let contentView2 = UIView()
+    private let refreshButton = UIButton()
+    private let pathNameLabel = UILabel()
+    private let fileCountLabel = UILabel()
     private let searchBar = UISearchBar()
-    private let lineView2 = AgoraBaseUIView()
+    private let lineView2 = UIView()
     
     /// data
     private var selectedType: AgoraCloudCoursewareType = .publicResource
@@ -50,7 +50,42 @@ class AgoraCloudTopView: AgoraBaseUIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func initViews() {
+    @objc func buttonTap(sender: UIButton) {
+        if sender == closeButton {
+            delegate?.agoraCloudTopViewDidTapCloseButton()
+            return
+        }
+        
+        if sender == publicAreaButton {
+            config(selectedType: .publicResource)
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .publicResource)
+            return
+        }
+        
+        if sender == privateAreaButton {
+            config(selectedType: .privateResource)
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .privateResource)
+            return
+        }
+        
+        if sender == refreshButton {
+            delegate?.agoraCloudTopViewDidTapRefreshButton()
+            return
+        }
+    }
+    
+    func set(fileNum: Int) {
+        let sumText = GetWidgetLocalizableString(object: self,
+                                                 key: "CloudSum")
+        let itemText = GetWidgetLocalizableString(object: self,
+                                                  key: "CloudItem")
+        fileCountLabel.text = "\(sumText)\(fileNum)\(itemText)"
+    }
+}
+
+// MARK: - private
+private extension AgoraCloudTopView {
+    func initViews() {
         /// 上半部分
         contentView1.backgroundColor = UIColor(hex: 0xF9F9FC)
         let buttonNormalColor = UIColor(hex: 0x586376)
@@ -116,6 +151,8 @@ class AgoraCloudTopView: AgoraBaseUIView {
             seachTextFild.font = .systemFont(ofSize: 12)
         }
         searchBar.delegate = self
+        searchBar.textField?.clearButtonMode = .never
+        searchBar.textField?.delegate = self
         
         lineView2.backgroundColor = lineColor
         
@@ -135,7 +172,7 @@ class AgoraCloudTopView: AgoraBaseUIView {
         config(selectedType: .publicResource)
     }
     
-    private func initLayout() {
+    func initLayout() {
         /// 上半部分
         contentView1.mas_makeConstraints { make in
             make?.left.right().top().equalTo()(self)
@@ -214,31 +251,7 @@ class AgoraCloudTopView: AgoraBaseUIView {
         }
     }
     
-    @objc func buttonTap(sender: UIButton) {
-        if sender == closeButton {
-            delegate?.agoraCloudTopViewDidTapCloseButton()
-            return
-        }
-        
-        if sender == publicAreaButton {
-            config(selectedType: .publicResource)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .publicResource)
-            return
-        }
-        
-        if sender == privateAreaButton {
-            config(selectedType: .privateResource)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .privateResource)
-            return
-        }
-        
-        if sender == refreshButton {
-            delegate?.agoraCloudTopViewDidTapRefreshButton()
-            return
-        }
-    }
-    
-    private func config(selectedType: AgoraCloudCoursewareType) {
+    func config(selectedType: AgoraCloudCoursewareType) {
         self.selectedType = selectedType
         switch selectedType {
         case .publicResource:
@@ -259,22 +272,47 @@ class AgoraCloudTopView: AgoraBaseUIView {
         }
     }
     
-    func set(fileNum: Int) {
-        let sumText = GetWidgetLocalizableString(object: self,
-                                                 key: "CloudSum")
-        let itemText = GetWidgetLocalizableString(object: self,
-                                                  key: "CloudItem")
-        fileCountLabel.text = "\(sumText)\(fileNum)\(itemText)"
-    }
-}
-
-// MARK: - UISearchBarDelegate
-extension AgoraCloudTopView: UISearchBarDelegate {
-    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+    func didSearch() {
+        UIApplication.shared.windows[0].endEditing(true)
         guard let text = searchBar.text else {
             return
         }
         delegate?.agoraCloudTopViewDidSearch(type: self.selectedType,
                                              keyStr: text)
+    }
+}
+
+// MARK: - UISearchBarDelegate
+extension AgoraCloudTopView: UISearchBarDelegate,UITextFieldDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        didSearch()
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        didSearch()
+    }
+    
+    func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
+        didSearch()
+    }
+    
+    func searchBarResultsListButtonClicked(_ searchBar: UISearchBar) {
+        didSearch()
+    }
+    
+    func textField(_ textField: UITextField,
+                   shouldChangeCharactersIn range: NSRange,
+                   replacementString string: String) -> Bool {
+        guard let str = searchBar.textField?.text else {
+            didSearch()
+            return true
+        }
+
+        if string == "",
+           (str.count == 1 || str == "") {
+            searchBar.textField?.clear()
+            didSearch()
+        }
+        return true
     }
 }

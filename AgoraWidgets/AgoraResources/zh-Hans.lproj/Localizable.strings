@@ -53,3 +53,11 @@ CloudPublicResource = "公共资源";
 CloudPrivateResource = "我的云盘";
 CloudSum = "共";
 CloudItem = "项";
+
+// Poller
+PollerTitle = "投票";
+PollerSubmit = "投票";
+PollerMulti = "多选";
+PollerSingle = "单选";
+PollerStart = "开始投票";
+PollerInputPlaceHolder = "请输入选项内容";

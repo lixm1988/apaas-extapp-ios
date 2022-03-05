@@ -56,10 +56,10 @@ struct AgoraCloudCellInfo {
     }
 }
 
-class AgoraCloudCell: AgoraBaseUITableViewCell {
+class AgoraCloudCell: UITableViewCell {
     
-    private let iconImageView = AgoraBaseUIImageView(frame: .zero)
-    private let nameLabel = AgoraBaseUILabel()
+    private let iconImageView = UIImageView(frame: .zero)
+    private let nameLabel = UILabel()
     private var info: AgoraCloudCellInfo = .empty
     
     override init(style: UITableViewCell.CellStyle,
