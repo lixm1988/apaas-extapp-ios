@@ -84,22 +84,21 @@ import AgoraWidget
             curUserProps = pollerUserModel
         }
         
-        let frame = frameFromRect(curFrame)
         if isTeacher {
             view.addSubview(teacherView)
             teacherView.mas_makeConstraints { make in
-                make?.left.equalTo()(frame.minX)
-                make?.top.equalTo()(frame.minY)
-                make?.width.equalTo()(frame.width)
-                make?.height.equalTo()(frame.height)
+                make?.left.equalTo()(0)
+                make?.top.equalTo()(0)
+                make?.width.equalTo()(0)
+                make?.height.equalTo()(0)
             }
         } else {
             view.addSubview(studentView)
             studentView.mas_makeConstraints { make in
-//                make?.left.equalTo()(frame.minX)
-//                make?.top.equalTo()(frame.minY)
-//                make?.width.equalTo()(frame.width)
-//                make?.height.equalTo()(frame.height)
+//                make?.left.equalTo()(0)
+//                make?.top.equalTo()(0)
+//                make?.width.equalTo()(0)
+//                make?.height.equalTo()(0)
                 make?.centerX.centerY().equalTo()(0)
                 make?.width.equalTo()(348)
                 make?.height.equalTo()(300)
@@ -229,19 +228,6 @@ private extension AgoraPollerWidget {
                                items: curExtra.pollingItems,
                                pollingDetails: curExtra.pollingDetails)
         }
-    }
-    
-    func frameFromRect(_ rect: CGRect) -> CGRect {
-        let width = self.view.width * rect.width
-        let height = self.view.height * rect.height
-        let MEDx = self.view.width - width
-        let MEDy = self.view.height - height
-        let x = MEDx * rect.minX
-        let y = MEDy * rect.minY
-        return CGRect(x: x,
-                      y: y,
-                      width: width,
-                      height: height)
     }
     
     func sendMessage(_ signal: AgoraPollerInteractionSignal) {
