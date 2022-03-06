@@ -5,89 +5,12 @@
 //  Created by Cavan on 2022/3/5.
 //
 
-import SwifterSwift
 import AgoraUIBaseViews
+import SwifterSwift
 import Masonry
 import UIKit
 
-struct AgoraAnswerSelectorOption {
-    var title: String
-    var isSelected: Bool
-}
-
-class AgoraAnswerSelectorOptionCell: UICollectionViewCell {
-    private let grayColor = UIColor(hexString: "#EEEEF7")
-    private let darkGrayColor = UIColor(hexString: "#BDBDCA")
-    private let blueColor = UIColor(hexString: "#357BF6")
-    private let whiteColor = UIColor.white
-    
-    var optionIsSelected: Bool = false {
-        didSet {
-            optionLabel.backgroundColor = optionIsSelected ? blueColor : whiteColor
-            optionLabel.textColor = optionIsSelected ? whiteColor : darkGrayColor
-            layer.borderColor = optionIsSelected ? blueColor?.cgColor : grayColor?.cgColor
-        }
-    }
-    
-    let optionLabel = UILabel()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        optionLabel.textColor = darkGrayColor
-        optionLabel.textAlignment = .center
-        optionLabel.font = UIFont.systemFont(ofSize: 20)
-        
-        layer.borderWidth = 1
-        layer.cornerRadius = 12
-        layer.masksToBounds = true
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        optionLabel.frame = bounds
-    }
-}
-
-class AgoraAnswerSelectorOptionCollectionView: UICollectionView {
-    private var space: CGFloat = 0
-    
-    init() {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        
-        super.init(frame: .zero,
-                   collectionViewLayout: layout)
-        
-        showsHorizontalScrollIndicator = false
-        showsVerticalScrollIndicator = false
-        isScrollEnabled = false
-        
-        backgroundColor = .white
-        bounces = false
-        isHidden = true
-        
-        register(cellWithClass: AgoraAnswerSelectorOptionCell.self)
-    }
-    
-    func setSpace(_ space: CGFloat) {
-        isHidden = false
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = space
-        
-        setCollectionViewLayout(layout,
-                                animated: false)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
+// MAKR: - Top View
 class AgoraAnswerSelectorTopView: UIView {
     private let titleLabel = UILabel()
     private let timeLabel = UILabel()
@@ -98,9 +21,9 @@ class AgoraAnswerSelectorTopView: UIView {
     
     let defaultHeight: CGFloat = 30
     
-    var isSubmited: Bool = false {
+    var selectorState: AgoraAnswerSelectorState = .unselected {
         didSet {
-            timeLabel.textColor = isSubmited ? grayColor : backColor
+            timeLabel.textColor = (selectorState == .unselected) ? backColor : grayColor 
         }
     }
     
@@ -135,53 +58,293 @@ class AgoraAnswerSelectorTopView: UIView {
         update(timeString: "00:00:00")
         
         lineLayer.backgroundColor = UIColor(hexString: "#EEEEF7")?.cgColor
+        self.layer.addSublayer(lineLayer)
+        
         backgroundColor = UIColor(hexString: "#F9F9FC")
         
         // Constrains
-                titleLabel.mas_makeConstraints { (make) in
-                    make?.left.equalTo()(0)
-                    make?.top.bottom()?.equalTo()(0)
-                    make?.width.equalTo()(0)
-                }
-        
-//        titleLabel.mas_makeConstraints { (make) in
-//            make?.left.equalTo()(10)
-//            make?.top.bottom()?.equalTo()(0)
-//            make?.width.equalTo()(titleSize.width)
-//        }
+        titleLabel.mas_makeConstraints { (make) in
+            make?.left.equalTo()(10)
+            make?.top.bottom()?.equalTo()(0)
+            make?.width.equalTo()(titleSize.width)
+        }
      
-//        timeLabel.mas_makeConstraints { (make) in
-//            make?.left.equalTo()(titleLabel.mas_right)?.offset()(5)
-//            make?.top.right().bottom()?.equalTo()(0)
-//        }
+        timeLabel.mas_makeConstraints { (make) in
+            make?.left.equalTo()(titleLabel.mas_right)?.offset()(5)
+            make?.top.right().bottom()?.equalTo()(0)
+        }
     }
     
     func update(timeString: String) {
         timeLabel.text = timeString
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        lineLayer.frame = CGRect(x: 0,
+                                 y: bounds.height,
+                                 width: bounds.width,
+                                 height: 1)
+    }
 }
 
-class AgoraAnswerSelectorView: UIView {
-    enum SelectorState {
-        case submit, change
+// MAKR: - Option Collection View
+class AgoraAnswerSelectorOptionCell: UICollectionViewCell {
+    private let grayColor = UIColor(hexString: "#EEEEF7")
+    private let darkGrayColor = UIColor(hexString: "#BDBDCA")
+    private let blueColor = UIColor(hexString: "#357BF6")
+    private let whiteColor = UIColor.white
+    
+    var optionIsSelected: Bool = false {
+        didSet {
+            optionLabel.backgroundColor = optionIsSelected ? blueColor : whiteColor
+            optionLabel.textColor = optionIsSelected ? whiteColor : darkGrayColor
+            layer.borderColor = optionIsSelected ? blueColor?.cgColor : grayColor?.cgColor
+        }
     }
     
-    
-    private var state = SelectorState.submit
-    
-    let topView = AgoraAnswerSelectorTopView()
-    
+    let optionLabel = UILabel()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        contentView.addSubview(optionLabel)
+
+        optionLabel.textColor = darkGrayColor
+        optionLabel.textAlignment = .center
+        optionLabel.font = UIFont.systemFont(ofSize: 20)
+        
+        layer.borderWidth = 1
+        layer.cornerRadius = 12
+        layer.masksToBounds = true
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        optionLabel.frame = bounds
+    }
+}
+
+class AgoraAnswerSelectorOptionCollectionView: UICollectionView {
+    private var space: CGFloat = 0
     
+    init() {
+        let layout = UICollectionViewFlowLayout()
+        
+        super.init(frame: .zero,
+                   collectionViewLayout: layout)
+        
+        showsHorizontalScrollIndicator = false
+        showsVerticalScrollIndicator = false
+        isScrollEnabled = false
+        
+        backgroundColor = .white
+        bounces = false
+        
+        register(cellWithClass: AgoraAnswerSelectorOptionCell.self)
+    }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MAKR: - Result Table View
+class AgoraAnswerSelectorResultCell: UITableViewCell {
+    static let cellId = NSStringFromClass(AgoraAnswerSelectorResultCell.self)
     
-   
+    let titleLabel = UILabel()
+    let resultLabel = UILabel()
+    
+    override init(style: UITableViewCell.CellStyle,
+                  reuseIdentifier: String?) {
+        super.init(style: style,
+                   reuseIdentifier: reuseIdentifier)
+        
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(resultLabel)
+        
+        titleLabel.textColor = UIColor(hexString: "#7B88A0")
+        resultLabel.textColor = UIColor(hexString: "#191919")
+        
+        titleLabel.font = UIFont.systemFont(ofSize: 13)
+        resultLabel.font = UIFont.systemFont(ofSize: 13)
+        
+        titleLabel.textAlignment = .left
+        resultLabel.textAlignment = .left
+        
+        selectionStyle = .none
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class AgoraAnswerSelectorResultTableView: UITableView {
+    override init(frame: CGRect,
+                  style: UITableView.Style) {
+        super.init(frame: frame,
+                   style: style)
+        rowHeight = 28
+        separatorStyle = .none
+        isScrollEnabled = false
+        register(AgoraAnswerSelectorResultCell.self,
+                 forCellReuseIdentifier: AgoraAnswerSelectorResultCell.cellId)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MAKR: - Button
+class AgoraAnswerSelectorButton: UIButton {
+    var selectorState: AgoraAnswerSelectorState = .unselected {
+        didSet {
+            switch selectorState {
+            case .post:
+                let post = GetWidgetLocalizableString(object: self,
+                                                      key: "fcr_AnswerSelector_Post")
+                setTitle(post,
+                         for: .normal)
+                setTitleColor(.white,
+                              for: .disabled)
+                isEnabled = false
+                backgroundColor = UIColor(hexString: "#357BF6")
+            case .change:
+                let change = GetWidgetLocalizableString(object: self,
+                                                      key: "fcr_AnswerSelector_Change")
+                setTitle(change,
+                         for: .normal)
+                setTitleColor(.white,
+                              for: .disabled)
+                isEnabled = true
+                backgroundColor = UIColor(hexString: "#357BF6")
+            case .unselected:
+                let post = GetWidgetLocalizableString(object: self,
+                                                      key: "fcr_AnswerSelector_Post")
+                setTitle(post,
+                         for: .disabled)
+                setTitleColor(.white,
+                              for: .disabled)
+                isEnabled = false
+                backgroundColor = UIColor(hexString: "#C0D6FF")
+            default:
+                break
+            }
+        }
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        cornerRadius = 15
+        titleLabel?.font = UIFont.systemFont(ofSize: 13)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+class AgoraAnswerSelectorView: UIView {
+    let optionCollectionView = AgoraAnswerSelectorOptionCollectionView()
+    let topView = AgoraAnswerSelectorTopView()
+    let button = AgoraAnswerSelectorButton()
+    let resultTableView = AgoraAnswerSelectorResultTableView()
+    
+    let optionCollectionViewHorizontalSpace: CGFloat = 16
+    let optionCollectionItemSize = CGSize(width: 40,
+                                          height: 40)
+    
+    var selectorState: AgoraAnswerSelectorState = .unselected {
+        didSet {
+            button.selectorState = selectorState
+            topView.selectorState = selectorState
+            
+            guard selectorState == .end else {
+                return
+            }
+            
+            optionCollectionView.isHidden = true
+            button.isHidden = true
+            resultTableView.isHidden = false
+        }
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        createViews()
+        createConstrains()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func collectionViewLayout(superViewSize: CGSize) {
+        let rowCount: CGFloat = 4
+        
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        
+        let totalSpace = superViewSize.width - (optionCollectionViewHorizontalSpace * 2) - (optionCollectionItemSize.width * rowCount)
+        let minSpace = totalSpace / (rowCount - 1)
+        
+        layout.itemSize = optionCollectionItemSize
+        
+        layout.minimumLineSpacing = minSpace
+        
+        optionCollectionView.setCollectionViewLayout(layout,
+                                                     animated: false)
+    }
+    
+    private func createViews() {
+        selectorState = .unselected
+        
+        addSubview(topView)
+        addSubview(optionCollectionView)
+        addSubview(button)
+        addSubview(resultTableView)
+        
+        resultTableView.isHidden = true
+        
+        backgroundColor = .white
+        layer.borderColor = UIColor(hexString: "#E3E3EC")?.cgColor
+        layer.borderWidth = 1
+        layer.cornerRadius = 6
+        layer.masksToBounds = true
+    }
+    
+    private func createConstrains() {
+        topView.mas_makeConstraints { (make) in
+            make?.top.right()?.left()?.equalTo()(0)
+            make?.height.equalTo()(topView.defaultHeight)
+        }
+        
+        button.mas_makeConstraints { (make) in
+            make?.centerX.equalTo()(0)
+            make?.bottom.equalTo()(-20)
+            make?.width.equalTo()(80)
+            make?.height.equalTo()(30)
+        }
+        
+        optionCollectionView.mas_makeConstraints { (make) in
+            make?.top.equalTo()(topView.mas_bottom)?.offset()(20)
+            make?.left.equalTo()(optionCollectionViewHorizontalSpace)
+            make?.right.equalTo()(-optionCollectionViewHorizontalSpace)
+            make?.bottom.equalTo()(button.mas_top)?.offset()(-16)
+        }
+        
+        resultTableView.mas_makeConstraints { (make) in
+            make?.top.equalTo()(topView.mas_bottom)?.offset()(20)
+            make?.left.equalTo()(0)
+            make?.right.equalTo()(0)
+            make?.bottom.equalTo()(0)
+        }
+    }
 }

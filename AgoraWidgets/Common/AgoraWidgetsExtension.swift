@@ -106,6 +106,11 @@ extension String {
                                 token: token,
                                 host: host)
     }
+    
+    func ag_widget_localized() -> String {
+        let resource = "AgoraWidgets"
+        return self.ag_localizedIn(resource)
+    }
 }
 
 extension Double {
