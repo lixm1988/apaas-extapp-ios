@@ -12,7 +12,6 @@ import UIKit
 @objcMembers public class AgoraAnswerSelectorWidget: AgoraBaseWidget {
     private let armin = Armin(delegate: nil,
                               logTube: nil)
-    
     private var timer: Timer?
     
     // View
@@ -20,19 +19,17 @@ import UIKit
     private var lastViewSize = CGSize.zero
     
     // Data
-    private var optionList = [AgoraAnswerSelectorOption]()
-    
-    private var resultList: [AgoraAnswerSelectorResult] = []
-    
-    private var selectedOptionList = [Int]() { // store selected option index
+    private var optionList = [AgoraAnswerSelectorOption]() {
         didSet {
-            if selectedOptionList.count > 0 {
+            if let _ = optionList.first(where: {$0.isSelected}) {
                 selectorState = .post
             } else {
                 selectorState = .unselected
             }
         }
     }
+    
+    private var resultList = [AgoraAnswerSelectorResult]()
     
     private var selectorState: AgoraAnswerSelectorState = .unselected {
         didSet {
@@ -181,23 +178,12 @@ private extension AgoraAnswerSelectorWidget {
                                                     myAnswer: findMyAnswer())
         contentView.resultTableView.reloadData()
     }
-    
-    func insertSelectedOptionIndex(_ index: Int) {
-        selectedOptionList.append(index)
-    }
-    
-    func removeSelectedOptionIndex(_ index: Int) {
-        selectedOptionList.removeFirst { (storeIndex) -> Bool in
-            return (storeIndex == index)
-        }
-    }
-    
+        
     func findMyAnswer() -> [String] {
         var selectedItems = [String]()
         
-        for item in selectedOptionList {
-            let option = optionList[item]
-            selectedItems.append(option.title)
+        for item in optionList where item.isSelected {
+            selectedItems.append(item.title)
         }
         
         return selectedItems
@@ -303,8 +289,6 @@ extension AgoraAnswerSelectorWidget: UICollectionViewDataSource, UICollectionVie
         option.isSelected.toggle()
         optionList[indexPath.item] = option
         collectionView.reloadItems(at: [indexPath])
-        
-        option.isSelected ? insertSelectedOptionIndex(indexPath.item) : removeSelectedOptionIndex(indexPath.item)
     }
 }
 

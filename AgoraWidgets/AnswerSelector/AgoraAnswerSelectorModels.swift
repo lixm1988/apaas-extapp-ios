@@ -110,10 +110,18 @@ struct AgoraAnswerSelectorExtraData: Decodable {
             myAnswerResult += item
         }
         
+        var resultColor: UIColor?
+        
+        if myAnswerResult == correctResult {
+            resultColor = UIColor(hexString: "#0BAD69")
+        } else {
+            resultColor = UIColor(hexString: "#F04C36")
+        }
+        
         let myAnswerItem = AgoraAnswerSelectorResult(title: myAnswerTitle,
-                                                    result: myAnswerResult,
-                                                    titleSize: myAnswerSize,
-                                                    resultColor: UIColor(hexString: "#0BAD69"))
+                                                     result: myAnswerResult,
+                                                     titleSize: myAnswerSize,
+                                                     resultColor: resultColor)
         list.append(myAnswerItem)
         
         return list
