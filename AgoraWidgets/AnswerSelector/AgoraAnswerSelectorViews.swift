@@ -93,6 +93,7 @@ class AgoraAnswerSelectorOptionCell: UICollectionViewCell {
     private let grayColor = UIColor(hexString: "#EEEEF7")
     private let darkGrayColor = UIColor(hexString: "#BDBDCA")
     private let blueColor = UIColor(hexString: "#357BF6")
+    private let lightBlueColor = UIColor(hexString: "#C0D6FF")
     private let whiteColor = UIColor.white
     
     var optionIsSelected: Bool = false {
@@ -100,6 +101,20 @@ class AgoraAnswerSelectorOptionCell: UICollectionViewCell {
             optionLabel.backgroundColor = optionIsSelected ? blueColor : whiteColor
             optionLabel.textColor = optionIsSelected ? whiteColor : darkGrayColor
             layer.borderColor = optionIsSelected ? blueColor?.cgColor : grayColor?.cgColor
+        }
+    }
+    
+    // after 'optionIsSelected
+    var isEnable: Bool = true {
+        didSet {
+            isUserInteractionEnabled = isEnable
+            
+            guard optionIsSelected else {
+                return
+            }
+            
+            optionLabel.backgroundColor = isEnable ? blueColor : lightBlueColor
+            layer.borderColor = isEnable ? blueColor?.cgColor : lightBlueColor?.cgColor
         }
     }
     
@@ -129,8 +144,6 @@ class AgoraAnswerSelectorOptionCell: UICollectionViewCell {
 }
 
 class AgoraAnswerSelectorOptionCollectionView: UICollectionView {
-    private var space: CGFloat = 0
-    
     init() {
         let layout = UICollectionViewFlowLayout()
         
@@ -155,6 +168,8 @@ class AgoraAnswerSelectorOptionCollectionView: UICollectionView {
 // MAKR: - Result Table View
 class AgoraAnswerSelectorResultCell: UITableViewCell {
     static let cellId = NSStringFromClass(AgoraAnswerSelectorResultCell.self)
+    static let font = UIFont.systemFont(ofSize: 13)
+    static let labelHeight: CGFloat = 18
     
     let titleLabel = UILabel()
     let resultLabel = UILabel()
@@ -170,8 +185,8 @@ class AgoraAnswerSelectorResultCell: UITableViewCell {
         titleLabel.textColor = UIColor(hexString: "#7B88A0")
         resultLabel.textColor = UIColor(hexString: "#191919")
         
-        titleLabel.font = UIFont.systemFont(ofSize: 13)
-        resultLabel.font = UIFont.systemFont(ofSize: 13)
+        titleLabel.font = AgoraAnswerSelectorResultCell.font
+        resultLabel.font = AgoraAnswerSelectorResultCell.font
         
         titleLabel.textAlignment = .left
         resultLabel.textAlignment = .left
@@ -203,6 +218,9 @@ class AgoraAnswerSelectorResultTableView: UITableView {
 
 // MAKR: - Button
 class AgoraAnswerSelectorButton: UIButton {
+    private let blueColor = UIColor(hexString: "#357BF6")
+    private let lightBlueColor = UIColor(hexString: "#C0D6FF")
+    
     var selectorState: AgoraAnswerSelectorState = .unselected {
         didSet {
             switch selectorState {
@@ -212,18 +230,20 @@ class AgoraAnswerSelectorButton: UIButton {
                 setTitle(post,
                          for: .normal)
                 setTitleColor(.white,
-                              for: .disabled)
-                isEnabled = false
-                backgroundColor = UIColor(hexString: "#357BF6")
+                              for: .normal)
+                isEnabled = true
+                backgroundColor = blueColor
+                layer.borderColor = blueColor?.cgColor
             case .change:
                 let change = GetWidgetLocalizableString(object: self,
-                                                      key: "fcr_AnswerSelector_Change")
+                                                        key: "fcr_AnswerSelector_Change")
                 setTitle(change,
                          for: .normal)
-                setTitleColor(.white,
-                              for: .disabled)
+                setTitleColor(blueColor,
+                              for: .normal)
                 isEnabled = true
-                backgroundColor = UIColor(hexString: "#357BF6")
+                backgroundColor = .white
+                layer.borderColor = blueColor?.cgColor
             case .unselected:
                 let post = GetWidgetLocalizableString(object: self,
                                                       key: "fcr_AnswerSelector_Post")
@@ -232,7 +252,8 @@ class AgoraAnswerSelectorButton: UIButton {
                 setTitleColor(.white,
                               for: .disabled)
                 isEnabled = false
-                backgroundColor = UIColor(hexString: "#C0D6FF")
+                backgroundColor = lightBlueColor
+                layer.borderColor = lightBlueColor?.cgColor
             default:
                 break
             }
@@ -241,7 +262,7 @@ class AgoraAnswerSelectorButton: UIButton {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-
+        layer.borderWidth = 1
         cornerRadius = 15
         titleLabel?.font = UIFont.systemFont(ofSize: 13)
     }

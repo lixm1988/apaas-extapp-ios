@@ -33,7 +33,7 @@ struct AgoraAnswerSelectorExtraData: Decodable {
     var averageAccuracy: Float      // 答题正确率
     var answerState: Int            // 答题状态 1:答题中 0：答题结束
     var receiveQuestionTime: Int64  // 收到题目时间
-    var selectedCount: Int          // 已经答题人数
+    var selectedCount: Int?         // 已经答题人数
     var totalCount: Int             // 应该答题的人数
     
     func toViewSelectorState() -> AgoraAnswerSelectorState? {
@@ -50,12 +50,14 @@ struct AgoraAnswerSelectorExtraData: Decodable {
         for item in items {
             let option = AgoraAnswerSelectorOption(title: item,
                                                    isSelected: false)
+            list.append(option)
         }
         
         return list
     }
     
     func toViewSelectorResultList(font: UIFont,
+                                  fontHeight: CGFloat,
                                   myAnswer: [String]) -> [AgoraAnswerSelectorResult] {
         var list = [AgoraAnswerSelectorResult]()
         
@@ -63,8 +65,10 @@ struct AgoraAnswerSelectorExtraData: Decodable {
         
         // Submission
         let submissionTitle = "fcr_AnswerSelector_Submission".ag_widget_localized() + postfix
-        let submissionSize = submissionTitle.agora_size(font: font)
-        let submissionResult = "\(selectedCount)/\(totalCount)"
+        let submissionSize = submissionTitle.agora_size(font: font,
+                                                        height: fontHeight)
+        var tSelectedCount = selectedCount ?? 0
+        let submissionResult = "\(tSelectedCount)/\(totalCount)"
         let submissionItem = AgoraAnswerSelectorResult(title: submissionTitle,
                                                        result: submissionResult,
                                                        titleSize: submissionSize)
@@ -72,8 +76,9 @@ struct AgoraAnswerSelectorExtraData: Decodable {
         
         // Accuracy
         let accuracyTitle = "fcr_AnswerSelector_Accuracy".ag_widget_localized() + postfix
-        let accuracySize = accuracyTitle.agora_size(font: font)
-        let accuracyResult = "\(averageAccuracy)%"
+        let accuracySize = accuracyTitle.agora_size(font: font,
+                                                    height: fontHeight)
+        let accuracyResult = "\(averageAccuracy * 100)%"
         let accuracyItem = AgoraAnswerSelectorResult(title: accuracyTitle,
                                                      result: accuracyResult,
                                                      titleSize: accuracySize)
@@ -81,8 +86,8 @@ struct AgoraAnswerSelectorExtraData: Decodable {
         
         // Correct
         let correctTitle = "fcr_AnswerSelector_Correct".ag_widget_localized() + postfix
-        let correctSize = correctTitle.agora_size(font: font)
-        
+        let correctSize = correctTitle.agora_size(font: font,
+                                                  height: fontHeight)
         var correctResult = ""
         
         for item in correctItems {
@@ -96,7 +101,8 @@ struct AgoraAnswerSelectorExtraData: Decodable {
         
         // My Answer
         let myAnswerTitle = "fcr_AnswerSelector_MyAnswer".ag_widget_localized() + postfix
-        let myAnswerSize = myAnswerTitle.agora_size(font: font)
+        let myAnswerSize = myAnswerTitle.agora_size(font: font,
+                                                    height: fontHeight)
         
         var myAnswerResult = ""
         

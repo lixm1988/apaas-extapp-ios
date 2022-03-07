@@ -107,6 +107,15 @@ extension String {
                                 host: host)
     }
     
+    func toSyncTimestamp() -> Int64? {
+        guard let dic = self.toDic(),
+              let timestamp = dic["syncTimestamp"] as? Int64 else {
+            return nil
+        }
+        
+        return timestamp
+    }
+    
     func ag_widget_localized() -> String {
         let resource = "AgoraWidgets"
         return self.ag_localizedIn(resource)
@@ -125,6 +134,15 @@ extension Double {
         else {
             return "\((self/(1024 * 1024)).roundTo(places: 1))" + "M"
         }
+    }
+}
+
+extension Int64 {
+    var formatStringHMS: String {
+        let hour = self / 3600
+        let minute = (self % 3600) / 60
+        let second = self % 60
+        return NSString(format: "%02ld:%02ld:%02ld", hour, minute, second) as String
     }
 }
 
