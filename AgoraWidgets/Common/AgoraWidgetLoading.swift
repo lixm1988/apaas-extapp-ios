@@ -11,7 +11,8 @@ import FLAnimatedImage
 public class AgoraWidgetLoading: NSObject {
     /// 往一个视图上添加loading，对应 removeLoading(in view: UIView)
     /// - parameter view: 需要添加loading的View
-    @objc public static func addLoading(in view: UIView, msg: String? = nil) {
+    @objc public static func addLoading(in view: UIView,
+                                        msg: String? = nil) {
         guard view != UIApplication.shared.keyWindow else {
             fatalError("use loading(msg: String)")
             return
@@ -57,7 +58,7 @@ fileprivate class AgoraLoadingView: UIView {
         super.init(frame: frame)
         
         self.createViews()
-        self.createConstrains()
+        self.createConstraint()
     }
     
     required init?(coder: NSCoder) {
@@ -108,7 +109,7 @@ fileprivate class AgoraLoadingView: UIView {
         contentView.addSubview(label)
     }
     
-    private func createConstrains() {
+    private func createConstraint() {
         loadingView.mas_makeConstraints { make in
             make?.centerX.equalTo()(0)
             make?.centerY.equalTo()(0)

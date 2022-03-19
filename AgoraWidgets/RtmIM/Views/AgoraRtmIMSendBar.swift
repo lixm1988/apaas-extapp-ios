@@ -28,7 +28,7 @@ class AgoraRtmIMSendBar: UIView {
         super.init(frame: frame)
         
         createViews()
-        createConstrains()
+        createConstraint()
     }
     
     required init?(coder: NSCoder) {
@@ -39,7 +39,7 @@ class AgoraRtmIMSendBar: UIView {
         if isMute {
             infoLabel.text = "ChatSilencedPlaceholderText".ag_localizedIn("AgoraWidgets")
         } else {
-            infoLabel.text = "ChatPlaceholderText".ag_localizedIn("AgoraWidgets")
+            infoLabel.text = "fcr_rtm_im_input_placeholder".ag_localizedIn("AgoraWidgets")
         }
         
         isUserInteractionEnabled = !isMute
@@ -72,7 +72,7 @@ private extension AgoraRtmIMSendBar {
         infoLabel = UILabel()
         infoLabel.font = UIFont.systemFont(ofSize: 13)
         infoLabel.textColor = UIColor(hex: 0x7D8798)
-        infoLabel.text = "ChatPlaceholderText".ag_localizedIn("AgoraWidgets")
+        infoLabel.text = "fcr_rtm_im_input_placeholder".ag_localizedIn("AgoraWidgets")
         addSubview(infoLabel)
         
         emojiButton = UIButton(type: .custom)
@@ -84,7 +84,7 @@ private extension AgoraRtmIMSendBar {
         addSubview(emojiButton)
     }
     
-    func createConstrains() {
+    func createConstraint() {
         topLine.mas_makeConstraints { make in
             make?.left.right().top().equalTo()(0)
             make?.height.equalTo()(1)

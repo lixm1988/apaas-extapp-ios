@@ -8,12 +8,23 @@
 import AgoraUIBaseViews
 import Masonry
 
+/**
+ AgoraCloudTopView
+ Data更新：文件数（public/private）
+ UI action更新：当前选择（public/private）
+ 
+ 通知外部：
+ 1. 关闭
+ 2. 关键字查询
+ 3. 选择文件类型（public/private）
+ 4. 刷新
+ */
+
 protocol AgoraCloudTopViewDelegate: NSObjectProtocol {
-    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudCoursewareType)
+    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudUIFileType)
     func agoraCloudTopViewDidTapCloseButton()
     func agoraCloudTopViewDidTapRefreshButton()
-    func agoraCloudTopViewDidSearch(type: AgoraCloudCoursewareType,
-                                    keyStr: String)
+    func agoraCloudTopViewDidSearch(keyStr: String)
 }
 
 class AgoraCloudTopView: UIView {
@@ -22,20 +33,18 @@ class AgoraCloudTopView: UIView {
     private let publicAreaButton = UIButton()
     private let privateAreaButton = UIButton()
     private let closeButton = UIButton()
-    private let publicAreaIndicatedView = UIView()
-    private let privateAreaIndicatedView = UIView()
-    private let lineView1 = UIView()
+    private let selectedLine = UIView()
+    private let sepLineLayer1 = CALayer()
     
     private let contentView2 = UIView()
     private let refreshButton = UIButton()
     private let pathNameLabel = UILabel()
     private let fileCountLabel = UILabel()
     private let searchBar = UISearchBar()
-    private let lineView2 = UIView()
+    private let sepLineLayer2 = CALayer()
     
-    /// data
-    private var selectedType: AgoraCloudCoursewareType = .publicResource
-    private var fileNum = 0
+    private let listHeaderView = UIView()
+    private let sepLineLayer3 = CALayer()
     
     /// delegate
     weak var delegate: AgoraCloudTopViewDelegate?
@@ -50,158 +59,192 @@ class AgoraCloudTopView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc func buttonTap(sender: UIButton) {
-        if sender == closeButton {
-            delegate?.agoraCloudTopViewDidTapCloseButton()
-            return
-        }
-        
-        if sender == publicAreaButton {
-            config(selectedType: .publicResource)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .publicResource)
-            return
-        }
-        
-        if sender == privateAreaButton {
-            config(selectedType: .privateResource)
-            delegate?.agoraCloudTopViewDidTapAreaButton(type: .privateResource)
-            return
-        }
-        
-        if sender == refreshButton {
-            delegate?.agoraCloudTopViewDidTapRefreshButton()
-            return
+    func update(selectedType: AgoraCloudUIFileType) {
+        switch selectedType {
+        case .uiPublic:
+            privateAreaButton.isSelected = false
+            publicAreaButton.isSelected = true
+            pathNameLabel.text = GetWidgetLocalizableString(object: self,
+                                                            key: "fcr_cloud_public_resource")
+            selectedLine.mas_remakeConstraints { make in
+                make?.width.equalTo()(66)
+                make?.height.equalTo()(2)
+                make?.bottom.equalTo()(self.contentView1)
+                make?.centerX.equalTo()(publicAreaButton.mas_centerX)
+            }
+
+        case .uiPrivate:
+            publicAreaButton.isSelected = false
+            privateAreaButton.isSelected = true
+            pathNameLabel.text = GetWidgetLocalizableString(object: self,
+                                                            key: "fcr_cloud_private_resource")
+            selectedLine.mas_remakeConstraints { make in
+                make?.width.equalTo()(66)
+                make?.height.equalTo()(2)
+                make?.bottom.equalTo()(self.contentView1)
+                make?.centerX.equalTo()(privateAreaButton.mas_centerX)
+            }
+            break
         }
     }
     
     func set(fileNum: Int) {
         let sumText = GetWidgetLocalizableString(object: self,
-                                                 key: "CloudSum")
-        let itemText = GetWidgetLocalizableString(object: self,
-                                                  key: "CloudItem")
-        fileCountLabel.text = "\(sumText)\(fileNum)\(itemText)"
+                                                 key: "fcr_cloud_total_item")
+        let final = sumText.replacingOccurrences(of: String.ag_localized_replacing(),
+                                                 with: "\(fileNum)")
+        fileCountLabel.text = final
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        sepLineLayer1.frame = CGRect(x: 0,
+                                     y: 29,
+                                     width: bounds.width,
+                                     height: 1)
+        sepLineLayer2.frame = CGRect(x: 0,
+                                     y: 59,
+                                     width: bounds.width,
+                                     height: 1)
+        sepLineLayer3.frame = CGRect(x: 0,
+                                 y: 90,
+                                 width: bounds.width,
+                                 height: 1)
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>,
+                               with event: UIEvent?) {
+        super.touchesBegan(touches,
+                           with: event)
+        didSearch()
     }
 }
 
 // MARK: - private
 private extension AgoraCloudTopView {
+    @objc func buttonTap(sender: UIButton) {
+        if sender == closeButton {
+            delegate?.agoraCloudTopViewDidTapCloseButton()
+        }else if sender == publicAreaButton {
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .uiPublic)
+        }else if sender == privateAreaButton {
+            delegate?.agoraCloudTopViewDidTapAreaButton(type: .uiPrivate)
+        }else if sender == refreshButton {
+            delegate?.agoraCloudTopViewDidTapRefreshButton()
+        }
+    }
+    
     func initViews() {
+        let ui = AgoraUIGroup()
         /// 上半部分
-        contentView1.backgroundColor = UIColor(hex: 0xF9F9FC)
-        let buttonNormalColor = UIColor(hex: 0x586376)
-        let buttonSelectedColor = UIColor(hex: 0x191919)
-        let indicateViewColor = UIColor(hex: 0x0073FF)
-        let lineColor = UIColor(hex: 0xEEEEF7)
-        
+        contentView1.backgroundColor = ui.color.cloud_header_1_bg_color
         publicAreaButton.setTitleForAllStates(GetWidgetLocalizableString(object: self,
-                                                             key: "CloudPublicResource"))
-        publicAreaButton.titleLabel?.font = .systemFont(ofSize: 12)
-        publicAreaButton.setTitleColor(buttonNormalColor,
-                                       for: .normal)
-        publicAreaButton.setTitleColor(buttonSelectedColor,
-                                       for: .selected)
+                                                                         key: "fcr_cloud_public_resource"))
         
         privateAreaButton.setTitleForAllStates(GetWidgetLocalizableString(object: self,
-                                                                          key: "CloudPrivateResource"))
-        privateAreaButton.titleLabel?.font = .systemFont(ofSize: 12)
-        privateAreaButton.setTitleColor(buttonNormalColor,
-                                        for: .normal)
-        privateAreaButton.setTitleColor(buttonSelectedColor,
-                                        for: .selected)
+                                                                          key: "fcr_cloud_private_resource"))
+        for btn in [publicAreaButton,privateAreaButton] {
+            btn.titleLabel?.font = ui.font.cloud_label_font
+            btn.setTitleColor(ui.color.cloud_label_color,
+                              for: .normal)
+        }
         
-        publicAreaIndicatedView.backgroundColor = indicateViewColor
-        publicAreaIndicatedView.isHidden = true
-        privateAreaIndicatedView.backgroundColor = indicateViewColor
-        privateAreaIndicatedView.isHidden = true
-        
+        selectedLine.backgroundColor = ui.color.cloud_select_line_color
+
         closeButton.setImage(GetWidgetImage(object: self,
-                                            "icon_close"),
+                                            "cloud_close"),
                              for: .normal)
-        
-        lineView1.backgroundColor = lineColor
-        
+
         addSubview(contentView1)
         contentView1.addSubview(publicAreaButton)
         contentView1.addSubview(privateAreaButton)
         contentView1.addSubview(closeButton)
-        contentView1.addSubview(lineView1)
-        contentView1.addSubview(publicAreaIndicatedView)
-        contentView1.addSubview(privateAreaIndicatedView)
+        contentView1.addSubview(selectedLine)
         
         /// 下半部分
-        contentView2.backgroundColor = .white
+        contentView2.backgroundColor = ui.color.cloud_header_2_bg_color
         let refreshImage = GetWidgetImage(object: self,
                                           "icon_refresh")
-        let textColor = UIColor(hex: 0x191919)
-        
         refreshButton.setImage(refreshImage,
                                for: .normal)
         
-        pathNameLabel.textColor = textColor
-        pathNameLabel.font = .systemFont(ofSize: 12)
+        pathNameLabel.textColor = ui.color.cloud_label_color
+        pathNameLabel.font = ui.font.cloud_label_font
         pathNameLabel.textAlignment = .left
         
-        fileCountLabel.textColor = textColor
-        fileCountLabel.font = .systemFont(ofSize: 12)
+        fileCountLabel.textColor = ui.color.cloud_label_color
+        fileCountLabel.font = ui.font.cloud_label_font
         fileCountLabel.textAlignment = .right
         
         searchBar.placeholder = GetWidgetLocalizableString(object: self,
-                                                           key: "CloudSearch")
-        if let seachTextFild = searchBar.value(forKey: "searchField") as? UITextField {
-            seachTextFild.font = .systemFont(ofSize: 12)
-        }
+                                                           key: "fcr_cloud_search")
         searchBar.delegate = self
+        searchBar.backgroundColor = ui.color.cloud_header_2_bg_color
+        searchBar.cornerRadius = ui.frame.cloud_search_bar_corner_radius
+        searchBar.layer.borderColor = ui.color.cloud_search_bar_border_color
+        searchBar.layer.borderWidth = ui.frame.cloud_search_bar_border_width
+        searchBar.textField?.font = ui.font.cloud_label_font
+        searchBar.textField?.backgroundColor = ui.color.cloud_header_2_bg_color
         searchBar.textField?.clearButtonMode = .never
         searchBar.textField?.delegate = self
-        
-        lineView2.backgroundColor = lineColor
         
         addSubview(contentView2)
         contentView2.addSubview(refreshButton)
         contentView2.addSubview(pathNameLabel)
         contentView2.addSubview(fileCountLabel)
         contentView2.addSubview(searchBar)
-        contentView2.addSubview(lineView2)
         
         for btn in [publicAreaButton,privateAreaButton,closeButton,refreshButton] {
             btn.addTarget(self,
                           action: #selector(buttonTap(sender:)),
                           for: .touchUpInside)
         }
+        // header view
+        let nameLabel = UILabel()
         
-        config(selectedType: .publicResource)
+        listHeaderView.backgroundColor = ui.color.cloud_header_1_bg_color
+        nameLabel.text = GetWidgetLocalizableString(object: self,
+                                                    key: "fcr_cloud_file_name")
+        
+        nameLabel.textColor = ui.color.cloud_file_name_label_color
+        nameLabel.font = ui.font.cloud_label_font
+        
+        listHeaderView.addSubview(nameLabel)
+        
+        nameLabel.mas_makeConstraints { make in
+            make?.centerY.equalTo()(self.listHeaderView)
+            make?.left.equalTo()(self.listHeaderView)?.offset()(14)
+        }
+        addSubview(listHeaderView)
+        
+        for sepLayer in [sepLineLayer1, sepLineLayer2, sepLineLayer3] {
+            sepLayer.backgroundColor = ui.color.cloud_sep_line_color
+            layer.addSublayer(sepLayer)
+        }
     }
     
     func initLayout() {
         /// 上半部分
         contentView1.mas_makeConstraints { make in
             make?.left.right().top().equalTo()(self)
-            make?.height.equalTo()(30)
+            make?.height.equalTo()(29)
         }
         
         publicAreaButton.mas_makeConstraints { make in
             make?.centerY.equalTo()(self.contentView1)
-            make?.left.equalTo()(24)
-            make?.width.equalTo()(80)
+            make?.left.equalTo()(19)
         }
         
         privateAreaButton.mas_makeConstraints { make in
             make?.centerY.equalTo()(self.contentView1)
-            make?.left.equalTo()(publicAreaButton.mas_right)
-            make?.width.equalTo()(80)
+            make?.left.equalTo()(publicAreaButton.mas_right)?.offset()(40)
         }
         
-        publicAreaIndicatedView.mas_makeConstraints { make in
+        selectedLine.mas_makeConstraints { make in
             make?.width.equalTo()(66)
             make?.height.equalTo()(2)
             make?.bottom.equalTo()(self.contentView1)
             make?.centerX.equalTo()(publicAreaButton.mas_centerX)
-        }
-        privateAreaIndicatedView.mas_makeConstraints { make in
-            make?.width.equalTo()(66)
-            make?.height.equalTo()(2)
-            make?.bottom.equalTo()(self.contentView1)
-            make?.centerX.equalTo()(privateAreaButton.mas_centerX)
         }
         
         closeButton.mas_makeConstraints { make in
@@ -209,15 +252,10 @@ private extension AgoraCloudTopView {
             make?.width.height().equalTo()(24)
             make?.right.equalTo()(self.contentView1.mas_right)?.offset()(-10)
         }
-
-        lineView1.mas_makeConstraints { make in
-            make?.left.right().bottom().equalTo()(self.contentView1)
-            make?.height.equalTo()(1)
-        }
-        
         /// 下半部分
         contentView2.mas_makeConstraints { make in
-            make?.left.right().bottom().equalTo()(self)
+            make?.top.equalTo()(contentView1.mas_bottom)?.offset()(1)
+            make?.left.right().equalTo()(self)
             make?.height.equalTo()(30)
         }
         
@@ -233,11 +271,6 @@ private extension AgoraCloudTopView {
             make?.centerY.equalTo()(self.contentView2)
         }
         
-        fileCountLabel.mas_makeConstraints { make in
-            make?.right.equalTo()(self.contentView2)?.offset()(-10)
-            make?.centerY.equalTo()(self.contentView2)
-        }
-        
         searchBar.mas_makeConstraints { make in
             make?.width.equalTo()(160)
             make?.height.equalTo()(22)
@@ -245,58 +278,33 @@ private extension AgoraCloudTopView {
             make?.centerY.equalTo()(self.contentView2.mas_centerY)
         }
         
-        lineView2.mas_makeConstraints { make in
-            make?.left.right().bottom().equalTo()(self.contentView2)
-            make?.height.equalTo()(1)
+        fileCountLabel.mas_makeConstraints { make in
+            make?.right.equalTo()(self.searchBar.mas_left)?.offset()(-10)
+            make?.centerY.equalTo()(self.contentView2)
         }
-    }
-    
-    func config(selectedType: AgoraCloudCoursewareType) {
-        self.selectedType = selectedType
-        switch selectedType {
-        case .publicResource:
-            privateAreaButton.isSelected = false
-            publicAreaButton.isSelected = true
-            privateAreaIndicatedView.isHidden = true
-            publicAreaIndicatedView.isHidden = false
-            pathNameLabel.text = GetWidgetLocalizableString(object: self,
-                                                            key: "CloudPublicResource")
-        case .privateResource:
-            publicAreaButton.isSelected = false
-            privateAreaButton.isSelected = true
-            publicAreaIndicatedView.isHidden = true
-            privateAreaIndicatedView.isHidden = false
-            pathNameLabel.text = GetWidgetLocalizableString(object: self,
-                                                            key: "CloudPrivateResource")
-            break
+        
+        listHeaderView.mas_makeConstraints { make in
+            make?.top.equalTo()(contentView2.mas_bottom)
+            make?.left.right().equalTo()(self)
+            make?.height.equalTo()(30)
         }
+
     }
     
     func didSearch() {
         UIApplication.shared.windows[0].endEditing(true)
         guard let text = searchBar.text else {
+            delegate?.agoraCloudTopViewDidSearch(keyStr: "")
             return
         }
-        delegate?.agoraCloudTopViewDidSearch(type: self.selectedType,
-                                             keyStr: text)
+        delegate?.agoraCloudTopViewDidSearch(keyStr: text)
     }
+
 }
 
 // MARK: - UISearchBarDelegate
 extension AgoraCloudTopView: UISearchBarDelegate,UITextFieldDelegate {
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        didSearch()
-    }
-    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        didSearch()
-    }
-    
-    func searchBarBookmarkButtonClicked(_ searchBar: UISearchBar) {
-        didSearch()
-    }
-    
-    func searchBarResultsListButtonClicked(_ searchBar: UISearchBar) {
         didSearch()
     }
     

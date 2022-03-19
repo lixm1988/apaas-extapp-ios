@@ -31,10 +31,6 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
             return
         }
         
-        if let zoomScale = modifyState.zoomScale {
-            return
-        }
-
         if let state = modifyState.globalState as? AgoraWhiteboardGlobalState {
             dt.globalState = state
             return
@@ -81,7 +77,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         sendMessage(signal: .BoardPhaseChanged(phase.toWidget()))
         
         log(.info,
-            log: "phase: \(phase.strValue)")
+            content: "phase: \(phase.strValue)")
         if phase == .connected {
             AgoraWidgetLoading.removeLoading(in: self.view)
         }
@@ -92,13 +88,13 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
     
     public func fireCanRedoStepsUpdate(_ canRedoSteps: Int) {
         log(.info,
-            log: "canRedoSteps:\(canRedoSteps)")
+            content: "canRedoSteps:\(canRedoSteps)")
         sendMessage(signal: .BoardStepChanged(.redoCount(canRedoSteps)))
     }
     
     public func fireCanUndoStepsUpdate(_ canUndoSteps: Int) {
         log(.info,
-            log: "canUndoSteps:\(canUndoSteps)")
+            content: "canUndoSteps:\(canUndoSteps)")
         sendMessage(signal: .BoardStepChanged(.undoCount(canUndoSteps)))
     }
 }
@@ -106,13 +102,13 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
 extension AgoraWhiteboardWidget: WhiteCommonCallbackDelegate {
     public func throwError(_ error: Error) {
         log(.error,
-            log: "\(error.localizedDescription)")
+            content: "\(error.localizedDescription)")
     }
     
     public func logger(_ dict: [AnyHashable : Any]) {
         // {funName: string, message: id} funName 为对应 API 的名称
         log(.info,
-            log: "\(dict.description)")
+            content: "\(dict.description)")
     }
 }
 
@@ -154,49 +150,55 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
     
     func onGrantUsersChanged(grantUsers: [String]) {
         log(.info,
-            log: "grant users changed: \(grantUsers)")
+            content: "grant users changed: \(grantUsers)")
         sendMessage(signal: .BoardGrantDataChanged(grantUsers))
     }
     
-    func onLocalGrantedChangedForBoardHandle(localGranted: Bool) {
+    func onLocalGrantedChangedForBoardHandle(localGranted: Bool,
+                                             completion: (() -> Void)?) {
         log(.info,
-            log: "local granted: \(localGranted)")
+            content: "local granted: \(localGranted)")
         
-        room?.setViewMode(localGranted ? .freedom : .follower)
-        room?.disableDeviceInputs(!localGranted)
+        self.room?.setViewMode(localGranted ? .freedom : .broadcaster)
         
         room?.setWritable(localGranted,
                           completionHandler: {[weak self] isWritable, error in
-            guard let `self` = self else {
-                return
-            }
-            if let error = error {
-                self.log(.error,
-                         log: "setWritable error: \(error.localizedDescription)")
-            } else {
-                self.room?.disableCameraTransform(!isWritable)
-                self.ifUseLocalCameraConfig()
-                self.room?.setViewMode(isWritable ? .freedom : .follower)
-                if !self.initMemberStateFlag {
-                    if isWritable {
-                        self.room?.setMemberState(self.dt.baseMemberState)
-                        self.initMemberStateFlag = true
-                    }
-                }
-            }
-        })
+                            guard let `self` = self else {
+                                return
+                            }
+                            if let error = error {
+                                self.log(.error,
+                                         content: "setWritable error: \(error.localizedDescription)")
+                            } else {
+                                self.room?.disableCameraTransform(!isWritable)
+                                self.ifUseLocalCameraConfig()
+                                self.room?.disableDeviceInputs(!localGranted)
+                                if !self.initMemberStateFlag,
+                                   isWritable {
+                                    self.room?.setMemberState(self.dt.baseMemberState)
+                                    self.initMemberStateFlag = true
+                                }
+                            }
+                            completion?()
+                          })
     }
     
+    func onOpenPublicCoursewares(list: Array<AgoraBoardCoursewareInfo>) {
+        for item in list {
+            self.handleOpenCourseware(info: item)
+        }
+    }
+
     func onPageIndexChanged(index: Int) {
         log(.info,
-            log: "page index changed: \(index)")
+            content: "page index changed: \(index)")
         let changeType = AgoraBoardPageChangeType.index(index)
         sendMessage(signal: .BoardPageChanged(changeType))
     }
     
     func onPageCountChanged(count: Int) {
         log(.info,
-            log: "page count changed: \(count)")
+            content: "page count changed: \(count)")
         let changeType = AgoraBoardPageChangeType.count(count)
         sendMessage(signal: .BoardPageChanged(changeType))
     }

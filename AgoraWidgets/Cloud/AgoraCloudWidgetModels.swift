@@ -7,49 +7,51 @@
 
 import Foundation
 // MARK: - Message
-enum AgoraCloudInteractionSignal {
+enum AgoraCloudInteractionSignal: Convertable {
     case OpenCoursewares(AgoraCloudWhiteScenesInfo)
     case CloseCloud
     
-    var rawValue: Int {
+    private enum CodingKeys: CodingKey {
+        case OpenCoursewares
+        case CloseCloud
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        if let _ = try? container.decodeNil(forKey: .CloseCloud) {
+            self = .CloseCloud
+        } else if let value = try? container.decode(AgoraCloudWhiteScenesInfo.self,
+                                                    forKey: .OpenCoursewares) {
+            self = .OpenCoursewares(value)
+        } else {
+            throw DecodingError.dataCorrupted(
+                .init(
+                    codingPath: container.codingPath,
+                    debugDescription: "invalid data"
+                )
+            )
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
         switch self {
-        case .OpenCoursewares(let _):   return 0
-        case .CloseCloud:   return 1
+        case .CloseCloud:
+            try container.encodeNil(forKey: .CloseCloud)
+        case .OpenCoursewares(let x):
+            try container.encode(x,
+                                 forKey: .OpenCoursewares)
         }
-    }
-    
-    static func getType(rawValue: Int) -> Convertable.Type? {
-        switch rawValue {
-        case 0:   return AgoraCloudWhiteScenesInfo.self
-        default:  return nil
-        }
-    }
-    
-    static func makeSignal(rawValue: Int,
-                           body: Convertable?) -> AgoraCloudInteractionSignal? {
-        switch rawValue {
-        case 0:
-            if let x = body as? AgoraCloudWhiteScenesInfo {
-                return .OpenCoursewares(x)
-            }
-        case 1:
-            return .CloseCloud
-        default:
-            break
-        }
-        return nil
     }
     
     func toMessageString() -> String? {
-        var dic = [String: Any]()
-        dic["signal"] = self.rawValue
-        switch self {
-        case .OpenCoursewares(let coursewareInfo) :
-            dic["body"] = coursewareInfo.toDictionary()
-        default:
-            break
+        guard let dic = self.toDictionary(),
+           let str = dic.jsonString() else {
+            return nil
         }
-    return dic.jsonString()
+        return str
     }
 }
 
@@ -59,6 +61,13 @@ enum AgoraCloudCoursewareType {
     case publicResource
     /// 我的云盘
     case privateResource
+    
+    var uiType: AgoraCloudUIFileType {
+        switch self {
+        case .publicResource:  return .uiPublic
+        case .privateResource: return .uiPrivate
+        }
+    }
 }
 
 // MARK: - to Whiteboard
@@ -70,7 +79,7 @@ struct AgoraCloudConvertedFile: Convertable {
 struct AgoraCloudWhiteScenesInfo: Convertable {
     public let resourceName: String
     public let resourceUuid: String
-    public let scenes: [AgoraCloudConvertedFile]
+    public let scenes: [AgoraCloudConvertedFile]?
     public let convert: Bool?
 }
 
@@ -78,9 +87,9 @@ struct AgoraCloudWhiteScenesInfo: Convertable {
 struct AgoraCloudCourseware: Convertable {
     var resourceName: String
     var resourceUuid: String
-    var scenePath: String
     var resourceURL: String
-    var scenes: [AgoraCloudConvertedFile]
+    /// ppt才有
+    var scenes: [AgoraCloudConvertedFile]?
     /// 原始文件的扩展名
     var ext: String
     /// 原始文件的大小 单位是字节
@@ -92,16 +101,14 @@ struct AgoraCloudCourseware: Convertable {
     
     init(resourceName: String,
          resourceUuid: String,
-         scenePath: String,
          resourceURL: String,
-         scenes: [AgoraCloudConvertedFile],
+         scenes: [AgoraCloudConvertedFile]?,
          ext: String,
          size: Double,
          updateTime: Double,
          convert: Bool?) {
         self.resourceName = resourceName
         self.resourceUuid = resourceUuid
-        self.scenePath = scenePath
         self.resourceURL = resourceURL
         self.scenes = scenes
         self.ext = ext
@@ -110,8 +117,8 @@ struct AgoraCloudCourseware: Convertable {
         self.convert = convert
     }
     
-    init(fileItem: CloudServerApi.FileItem) {
-        let scenes = fileItem.taskProgress.convertedFileList.map { conFile -> AgoraCloudConvertedFile in
+    init(fileItem: AgoraCloudServerAPI.FileItem) {
+        let scenes = fileItem.taskProgress?.convertedFileList.map { conFile -> AgoraCloudConvertedFile in
             let ppt = AgoraCloudPptPage(src: conFile.ppt.src,
                                              width: conFile.ppt.width,
                                              height: conFile.ppt.height,
@@ -122,19 +129,17 @@ struct AgoraCloudCourseware: Convertable {
         
         self.init(resourceName: fileItem.resourceName,
                   resourceUuid: fileItem.resourceUuid,
-                  scenePath: "/\(fileItem.resourceName)" ,
                   resourceURL: fileItem.url,
                   scenes: scenes,
                   ext: fileItem.ext,
                   size: fileItem.size,
                   updateTime: fileItem.updateTime,
-                  convert: fileItem.convert)
+                  convert: fileItem.convert ?? false)
     }
     
     init(publicCourseware: AgoraCloudPublicCourseware) {
         self.init(resourceName: publicCourseware.resourceName,
                   resourceUuid: publicCourseware.resourceUUID,
-                  scenePath: "/\(publicCourseware.resourceName)" ,
                   resourceURL: publicCourseware.url,
                   scenes: publicCourseware.taskProgress.convertedFileList,
                   ext: publicCourseware.ext,
@@ -204,33 +209,78 @@ extension Array where Element == AgoraCloudPublicCourseware {
     }
 }
 
+// MARK: Data To UI Model
 extension Array where Element == AgoraCloudCourseware {
     func toCellInfos() -> Array<AgoraCloudCellInfo> {
         var cellInfos = [AgoraCloudCellInfo]()
         for courseware in self {
-            let info = AgoraCloudCellInfo(courseware: courseware)
+            let info = AgoraCloudCellInfo(ext: courseware.ext,
+                                          name: courseware.resourceName)
             cellInfos.append(info)
         }
         return cellInfos
     }
 }
 
-
+// MARK: - to Signal
 extension String {
     func toCloudSignal() -> AgoraCloudInteractionSignal? {
         guard let dic = self.toDic(),
-              let signalRaw = dic["signal"] as? Int else {
+              let signal = dic.toObj(AgoraCloudInteractionSignal.self) else {
                   return nil
               }
         
-        if let bodyDic = dic["body"] as? [String:Any],
-           let type = AgoraCloudInteractionSignal.getType(rawValue: signalRaw),
-           let obj = try type.decode(bodyDic) {
-            return AgoraCloudInteractionSignal.makeSignal(rawValue: signalRaw,
-                                                          body: obj)
-        }
-        
-        return nil
+        return signal
     }
 }
 
+
+// MARK: - UI
+enum AgoraCloudUIFileType {
+    case uiPublic, uiPrivate
+    
+    var dataType: AgoraCloudCoursewareType {
+        switch self {
+        case .uiPublic:
+            return .publicResource
+        case .uiPrivate:
+            return .privateResource
+        }
+    }
+}
+
+class AgoraCloudCellInfo: NSObject {
+    var image: UIImage?
+    let name: String
+    
+    init(ext: String,
+         name: String) {
+        self.name = name
+        super.init()
+        let imageName = AgoraCloudCellInfo.imageName(ext: ext)
+        self.image = GetWidgetImage(object: self,
+                                    imageName)
+    }
+    
+    static func imageName(ext: String) -> String {
+        switch ext {
+        case "pptx", "ppt", "pptm":
+            return "format-PPT"
+        case "docx", "doc":
+            return "format-word"
+        case "xlsx", "xls", "csv":
+            return "format-excel"
+        case "pdf":
+            return "format-pdf"
+        case "jpeg", "jpg", "png", "bmp":
+            return "format-pic"
+        case "mp3", "wav", "wma", "aac", "flac", "m4a", "oga", "opu":
+            return "format-audio"
+        case "mp4", "3gp", "mgp", "mpeg", "3g2", "avi", "flv", "wmv", "h264",
+            "m4v", "mj2", "mov", "ogg", "ogv", "rm", "qt", "vob", "webm":
+            return "format-video"
+        default:
+            return "format-unknown"
+        }
+    }
+}

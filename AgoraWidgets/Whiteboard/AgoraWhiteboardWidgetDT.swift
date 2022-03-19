@@ -10,8 +10,9 @@ import Foundation
 import Whiteboard
 
 protocol AGBoardWidgetDTDelegate: NSObjectProtocol {
-    func onLocalGrantedChangedForBoardHandle(localGranted: Bool)
-    
+    func onLocalGrantedChangedForBoardHandle(localGranted: Bool,
+                                             completion: (() -> Void)?)
+        
     func onScenePathChanged(path: String)
     func onGrantUsersChanged(grantUsers: [String])
     func onPageIndexChanged(index: Int)
@@ -26,15 +27,17 @@ class AgoraWhiteboardWidgetDT {
     private let scheme = "agoranetless"
     // from whiteboard
     var regionDomain = "convertcdn"
-    
+        
     var baseMemberState: WhiteMemberState = {
         var state = WhiteMemberState()
         state.currentApplianceName = WhiteApplianceNameKey.ApplianceClicker
-        state.strokeWidth = NSNumber(16)
+        state.strokeWidth = NSNumber(6)
         state.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
         state.textSize = NSNumber(18)
         return state
     }()
+    
+    var coursewareList: Array<AgoraBoardCoursewareInfo>?
     
     @available(iOS 11.0, *)
     lazy var schemeHandler: AgoraWhiteURLSchemeHandler? = {
@@ -64,18 +67,22 @@ class AgoraWhiteboardWidgetDT {
     
     var globalState = AgoraWhiteboardGlobalState() {
         didSet {
-            if globalState.grantUsers != oldValue.grantUsers {
-                if localUserInfo.userRole != "teacher" {
-                    // 若为学生，涉及localGranted
-                    if globalState.grantUsers.contains(localUserInfo.userUuid) {
-                        localGranted = true                        
-                    } else {
-                        localGranted = false
-                    }
+            // 授权相关
+            if localUserInfo.userRole != "teacher" {
+                // 若为学生，涉及localGranted
+                if globalState.grantUsers.contains(localUserInfo.userUuid) {
+                    localGranted = true
+                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: true,
+                                                                  completion: nil)
+                } else {
+                    localGranted = false
+                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: false,
+                                                                  completion: nil)
                 }
-
-                delegate?.onGrantUsersChanged(grantUsers: globalState.grantUsers)
             }
+            
+            delegate?.onGrantUsersChanged(grantUsers: globalState.grantUsers)
+            
         }
     }
     
@@ -86,11 +93,7 @@ class AgoraWhiteboardWidgetDT {
     // from properties
     var localCameraConfigs = [String: AgoraWhiteBoardCameraConfig]()
 
-    var localGranted: Bool = false {
-        didSet {
-            delegate?.onLocalGrantedChangedForBoardHandle(localGranted: localGranted)
-        }
-    }
+    var localGranted: Bool = false
     
     // config
     var propsExtra: AgoraWhiteboardPropExtra? {
@@ -112,6 +115,24 @@ class AgoraWhiteboardWidgetDT {
          localUserInfo: AgoraWidgetUserInfo) {
         self.configExtra = extra
         self.localUserInfo = localUserInfo
+        
+        if let coursewareJsonList = extra.coursewareList,
+           let infoList = transformPublicResources(coursewareJsonList: coursewareJsonList) {
+            coursewareList = infoList
+        }
+    }
+    
+    func makeGlobalState(materialList: [AgoraWhiteBoardTask]? = nil,
+                         currentSceneIndex: Int? = nil,
+                         grantUsers: Array<String>? = nil,
+                         teacherFirstLogin: Bool? = nil) -> AgoraWhiteboardGlobalState {
+        let newState = AgoraWhiteboardGlobalState()
+        newState.materialList = materialList ?? globalState.materialList
+        newState.currentSceneIndex = currentSceneIndex ?? globalState.currentSceneIndex
+        newState.grantUsers = grantUsers ?? globalState.grantUsers
+        newState.teacherFirstLogin = teacherFirstLogin ?? globalState.teacherFirstLogin
+        
+        return newState
     }
     
     func updateMemberState(state: AgoraBoardMemberState) {
@@ -251,5 +272,24 @@ class AgoraWhiteboardWidgetDT {
     
     func netlessPublicCourseware() -> String {
         return "https://convertcdn.netless.link/publicFiles.zip"
+    }
+}
+
+private extension AgoraWhiteboardWidgetDT {
+    /// 公共课件转换
+    func transformPublicResources(coursewareJsonList: Array<String> ) -> Array<AgoraBoardCoursewareInfo>? {
+        guard coursewareJsonList.count > 0 else {
+            return nil
+        }
+        var publicCoursewares = [AgoraBoardPublicCourseware]()
+        for json in coursewareJsonList {
+            if let data = json.data(using: .utf8),
+               let courseware = try? JSONDecoder().decode(AgoraBoardPublicCourseware.self,
+                                                          from: data) {
+                publicCoursewares.append(courseware)
+            }
+        }
+        
+        return publicCoursewares.toCoursewareList()
     }
 }

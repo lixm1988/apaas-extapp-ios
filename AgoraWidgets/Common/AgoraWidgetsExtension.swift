@@ -5,6 +5,7 @@
 //  Created by Cavan on 2021/7/21.
 //
 
+import CommonCrypto
 import Foundation
 
 struct AgoraAppBaseInfo {
@@ -120,6 +121,39 @@ extension String {
         let resource = "AgoraWidgets"
         return self.ag_localizedIn(resource)
     }
+    
+    func agora_md5() -> String {
+        let CC_MD5_DIGEST_LENGTH = 16
+        
+        guard self.count > 0 else {
+            return ""
+        }
+        
+        let cCharArray = self.cString(using: .utf8)
+        var uint8Array = [UInt8](repeating: 0,
+                                 count: CC_MD5_DIGEST_LENGTH)
+        CC_MD5(cCharArray,
+               CC_LONG(cCharArray!.count - 1),
+               &uint8Array)
+        let data = Data(bytes: &uint8Array,
+                        count: CC_MD5_DIGEST_LENGTH)
+        let base64Str = data.base64EncodedString()
+        return base64Str
+    }
+    
+    static func ag_localized_replacing() -> String {
+        return "{xxx}"
+    }
+}
+
+extension UIImage {
+    static func ag_imageName(_ name: String) -> UIImage? {
+        let resource = "AgoraWidgets"
+        let bundle = Bundle.ag_compentsBundleNamed(resource)
+        return UIImage.init(named: name,
+                            in: bundle,
+                            compatibleWith: nil)
+    }
 }
 
 extension Double {
@@ -135,6 +169,16 @@ extension Double {
             return "\((self/(1024 * 1024)).roundTo(places: 1))" + "M"
         }
     }
+    
+    /// Rounds the double to decimal places value
+    func roundTo(places:Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
+    }
+    
+    var intValue: Int64 {
+        return Int64(self)
+    }
 }
 
 extension Int64 {
@@ -143,6 +187,12 @@ extension Int64 {
         let minute = (self % 3600) / 60
         let second = self % 60
         return NSString(format: "%02ld:%02ld:%02ld", hour, minute, second) as String
+    }
+    
+    var formatStringMS: String {
+        let minute = (self % 3600) / 60
+        let second = self % 60
+        return NSString(format: "%02ld:%02ld", minute, second) as String
     }
 }
 
@@ -162,33 +212,6 @@ extension TimeInterval {
         return formatter.string(from: date)
     }
 }
-
-// 将 AgoraWidgetInfo.syncFrame 转化为 具体是显示在界面上的 frame
-extension CGRect {
-    func displayFrameFromSyncFrame(superView: UIView,
-                                   syncFrame: CGRect) -> CGRect {
-        let width = superView.width * syncFrame.width
-        let height = superView.height * syncFrame.height
-        let MEDx = superView.width - width
-        let MEDy = superView.height - height
-        let x = MEDx * syncFrame.minX
-        let y = MEDy * syncFrame.minY
-        return CGRect(x: x,
-                      y: y,
-                      width: width,
-                      height: height)
-    }
-}
-
-extension Double {
-    /// Rounds the double to decimal places value
-
-    func roundTo(places:Int) -> Double {
-        let divisor = pow(10.0, Double(places))
-        return (self * divisor).rounded() / divisor
-    }
-}
-
 
 // MARK: - resource
 public func GetWidgetImage(object: NSObject,

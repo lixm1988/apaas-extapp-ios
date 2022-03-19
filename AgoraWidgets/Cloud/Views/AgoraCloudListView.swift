@@ -8,17 +8,59 @@
 import AgoraUIBaseViews
 import Masonry
 
-protocol AgoraCloudListViewDelegate: NSObjectProtocol {
-    func agoraCloudListViewDidSelectedIndex(index: Int)
+/**
+ AgoraCloudListView
+ Data更新：文件列表
+ 
+ 通知外部：
+ 1. 选择cell->文件
+ */
+
+class AgoraCloudCell: UITableViewCell {
+    
+    let iconImageView = UIImageView(frame: .zero)
+    let nameLabel = UILabel()
+
+    override init(style: UITableViewCell.CellStyle,
+                  reuseIdentifier: String?) {
+        super.init(style: style,
+                   reuseIdentifier: reuseIdentifier)
+
+        backgroundColor = .white
+        createViews()
+        createConstraints()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func createViews() {
+        nameLabel.textColor = UIColor(hex: 0x191919)
+        nameLabel.font = .systemFont(ofSize: 13)
+        
+        contentView.addSubview(nameLabel)
+        contentView.addSubview(iconImageView)
+    }
+    
+    private func createConstraints() {
+        iconImageView.mas_makeConstraints { make in
+            make?.height.width().equalTo()(22)
+            make?.left.equalTo()(16)
+            make?.centerY.equalTo()(self.contentView)
+        }
+        
+        nameLabel.mas_makeConstraints { make in
+            make?.left.equalTo()(self.iconImageView.mas_right)?.offset()(9)
+            make?.centerY.equalTo()(self.contentView)
+        }
+    }
 }
 
 class AgoraCloudListView: UITableView {
-
-    private var infos = [AgoraCloudCellInfo]()
-    weak var listDelegate: AgoraCloudListViewDelegate?
+    let cellId = "AgoraCloudCell"
     
-    override init(frame: CGRect,
-                  style: UITableView.Style) {
+    override init(frame: CGRect, style: UITableView.Style) {
         super.init(frame: frame,
                    style: style)
         contentInset = .zero
@@ -27,44 +69,10 @@ class AgoraCloudListView: UITableView {
         separatorInset = .init(top: 0, left: 0, bottom: 0, right: 0)
         
         register(AgoraCloudCell.self,
-                 forCellReuseIdentifier: "AgoraCloudCell")
-        dataSource = self
-        delegate = self
-        reloadData()
+                 forCellReuseIdentifier: cellId)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    func update(infos: [AgoraCloudCellInfo]?) {
-        self.infos = infos ?? [AgoraCloudCellInfo]()
-        reloadData()
-    }
-}
-
-// MARK: - UITableViewDataSource, UITableViewDelegate
-extension AgoraCloudListView: UITableViewDataSource, UITableViewDelegate {
-    // MARK: UITableViewDataSource
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return infos.count
-    }
-    
-    func tableView(_ tableView: UITableView,
-                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "AgoraCloudCell",
-                                                 for: indexPath) as! AgoraCloudCell
-        let info = infos[indexPath.row]
-        cell.set(info: info)
-        return cell
-    }
-    
-    // MARK: UITableViewDelegate
-    
-    func tableView(_ tableView: UITableView,
-                   didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath,
-                              animated: true)
-        listDelegate?.agoraCloudListViewDidSelectedIndex(index: indexPath.row)
     }
 }

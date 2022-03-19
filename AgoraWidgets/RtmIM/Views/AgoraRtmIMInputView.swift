@@ -33,7 +33,7 @@ class AgoraRtmIMInputView: UIView {
         super.init(frame: frame)
         
         createViews()
-        createConstrains()
+        createConstraint()
         
         NotificationCenter.default.addObserver(
             self, selector: #selector(keyboardWillShow(noti:)),
@@ -128,7 +128,7 @@ private extension AgoraRtmIMInputView {
         self.sendButton = UIButton(type: .custom)
         self.sendButton.setTitleColor(.white, for: .normal)
         self.sendButton.clipsToBounds = true
-        self.sendButton.setTitle("ChatSendText".ag_localizedIn("AgoraWidgets"),
+        self.sendButton.setTitle("fcr_rtm_im_send".ag_localizedIn("AgoraWidgets"),
                                  for: .normal)
         if let color = UIColor(hex: 0x357BF6) {
             self.sendButton.setBackgroundImage(UIImage.init(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
@@ -148,7 +148,7 @@ private extension AgoraRtmIMInputView {
         self.addSubview(self.textFiled)
     }
     
-    func createConstrains() {
+    func createConstraint() {
         self.contentView.mas_makeConstraints { make in
             make?.left.right().equalTo()(0)
             make?.bottom.equalTo()(frame.maxY)

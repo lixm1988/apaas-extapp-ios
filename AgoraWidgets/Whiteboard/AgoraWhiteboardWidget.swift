@@ -16,7 +16,7 @@ struct InitCondition {
     var needJoin = false
 }
 
-@objcMembers public class AgoraWhiteboardWidget: AgoraBaseWidget {
+@objcMembers public class AgoraWhiteboardWidget: AgoraBaseWidget, AgoraWidgetLogTube {
     
     private(set) var contentView: UIView!
     
@@ -27,8 +27,8 @@ struct InitCondition {
     
     var initMemberStateFlag: Bool = false
     
-    private var logger: AgoraLogger
-    
+    var logger: AgoraWidgetLogger
+
     var initCondition = InitCondition() {
         didSet {
             if initCondition.configComplete,
@@ -45,11 +45,11 @@ struct InitCondition {
         self.dt = AgoraWhiteboardWidgetDT(extra: AgoraWhiteboardExtraInfo.fromExtraDic(widgetInfo.extraInfo),
                                           localUserInfo: widgetInfo.localUserInfo)
         
-        self.logger = AgoraLogger(folderPath: GetWidgetLogFolder(),
-                                  filePrefix: widgetInfo.widgetId,
-                                  maximumNumberOfFiles: 5)
-        // MARK: 在此修改日志是否打印在控制台,默认为不打印
-        self.logger.setPrintOnConsoleType(.none)
+        let logger = AgoraWidgetLogger(widgetId: widgetInfo.widgetId)
+        #if DEBUG
+        logger.isPrintOnConsole = true
+        #endif
+        self.logger = logger
         
         super.init(widgetInfo: widgetInfo)
         self.dt.delegate = self
@@ -68,7 +68,7 @@ struct InitCondition {
     
     public override func onMessageReceived(_ message: String) {
         log(.info,
-            log: "onMessageReceived:\(message)")
+            content: "onMessageReceived:\(message)")
         
         if let signal = message.toBoardSignal() {
             switch signal {
@@ -85,7 +85,8 @@ struct InitCondition {
             case .BoardStepChanged(let changeType):
                 handleStepChange(changeType: changeType)
             case .ClearBoard:
-                handleClearBoard()
+                // 清屏，保留ppt
+                room?.cleanScene(true)
             case .OpenCourseware(let courseware):
                 handleOpenCourseware(info: courseware)
             default:
@@ -101,7 +102,7 @@ struct InitCondition {
             return
         }
         log(.info,
-            log: "onWidgetRoomPropertiesUpdated:\(properties)")
+            content: "onWidgetRoomPropertiesUpdated:\(properties)")
         dt.propsExtra = wbProperties
     }
     
@@ -109,28 +110,29 @@ struct InitCondition {
                                                        cause: [String : Any]?,
                                                        keyPaths: [String]) {
         log(.info,
-            log: "onWidgetRoomPropertiesUpdated:\(keyPaths)")
+            content: "onWidgetRoomPropertiesUpdated:\(keyPaths)")
         guard let wbProperties = properties?.toObj(AgoraWhiteboardPropExtra.self) else {
+            dt.propsExtra = nil
             return
         }
         dt.propsExtra = wbProperties
     }
     
     func log(_ type: AgoraWhiteboardLogType,
-             log: String) {
+             content: String) {
         switch type {
         case .info:
-            logger.log("[Whiteboard widget] \(log)",
-                       type: .info)
+            log(content: "[Whiteboard widget] \(content)",
+                type: .info)
         case .warning:
-            logger.log("[Whiteboard widget] \(log)",
-                       type: .warning)
+            log(content: "[Whiteboard widget] \(content)",
+                type: .warning)
         case .error:
-            logger.log("[Whiteboard widget] \(log)",
-                       type: .error)
+            log(content: "[Whiteboard widget] \(content)",
+                type: .error)
         default:
-            logger.log("[Whiteboard widget] \(log)",
-                       type: .info)
+            log(content: "[Whiteboard widget] \(content)",
+                type: .info)
         }
     }
     
@@ -146,7 +148,7 @@ extension AgoraWhiteboardWidget {
     func sendMessage(signal: AgoraBoardInteractionSignal) {
         guard let text = signal.toMessageString() else {
             log(.error,
-                log: "signal encode error!")
+                content: "signal encode error!")
             return
         }
         sendMessage(text)
@@ -194,7 +196,7 @@ extension AgoraWhiteboardWidget {
             AgoraWidgetLoading.addLoading(in: self.view)
         }
         log(.info,
-            log: "start join")
+            content: "start join")
         sdk.joinRoom(with: roomConfig,
                      callbacks: self) { [weak self] (success, room, error) in
             DispatchQueue.main.async {
@@ -206,13 +208,13 @@ extension AgoraWhiteboardWidget {
             guard success, error == nil ,
                   let whiteRoom = room else {
                 self.log(.error,
-                         log: "join room error :\(error?.localizedDescription)")
+                         content: "join room error :\(error?.localizedDescription)")
                 self.dt.reconnectTime += 2
                 self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
             }
             self.log(.info,
-                     log: "join room success")
+                     content: "join room success")
             
             self.room = whiteRoom
             self.initRoomState(state: whiteRoom.state)
@@ -241,7 +243,8 @@ extension AgoraWhiteboardWidget {
     // MARK: - message handle
     func handleOpenCourseware(info: AgoraBoardCoursewareInfo) {
         var appParam: WhiteAppParam?
-        if info.convert {
+        if let convert = info.convert,
+           convert {
             appParam = WhiteAppParam.createSlideApp("/\(info.resourceUuid)",
                                                     scenes: info.scenes.toNetless(),
                                                     title: info.resourceName)
@@ -277,12 +280,7 @@ extension AgoraWhiteboardWidget {
         guard let `room` = room else {
             return
         }
-        
-        let newState = AgoraWhiteboardGlobalState()
-        newState.materialList = dt.globalState.materialList
-        newState.currentSceneIndex = dt.globalState.currentSceneIndex
-        newState.grantUsers = (list == nil) ? Array<String>() : list!
-        
+        let newState = dt.makeGlobalState(grantUsers: list)
         room.setGlobalState(newState)
     }
     
@@ -292,22 +290,20 @@ extension AgoraWhiteboardWidget {
         }
         switch changeType {
         case .index(let index):
-            room.setSceneIndex(UInt(index < 0 ? 0 : index),
-                               completionHandler: nil)
+            room.setSceneIndex(UInt(index < 0 ? 0 : index)) {[weak self] success, error in
+                if !success {
+                    self?.log(.error,
+                              content: error.debugDescription)
+                }
+            }
         case .count(let count):
             if count > dt.page.count {
-                let newIndex = UInt(dt.page.index + 1)
-                // 新增
-                var scenes = [WhiteScene]()
-                for i in dt.page.count ..< count {
-                    scenes.append(WhiteScene(name: "\(info.widgetId)\(newIndex)", ppt: nil))
-                }
-                
-                room.putScenes("/",
-                               scenes: scenes,
-                               index: newIndex)
-                room.setSceneIndex(newIndex) { success, error in
-                    print(success)
+                room.addPage()
+                room.nextPage { [weak self] success in
+                    if success {
+                        self?.log(.info,
+                                  content: "add page successfullt")
+                    }
                 }
             } else {
                 // 减少
@@ -335,30 +331,21 @@ extension AgoraWhiteboardWidget {
             break
         }
     }
-    
-    func handleClearBoard() {
-        guard let `room` = room else {
-            return
-        }
-        // 清屏，保留ppt
-        room.cleanScene(true)
-    }
-    
+
     func initRoomState(state: WhiteRoomState) {
         guard let `room` = room else {
             return
         }
         
+        // undo和redo只有在disableSerialization为false时生效
         room.disableSerialization(false)
-        
-        if info.localUserInfo.userRole == "teacher" {
-            dt.localGranted = true
-        }
         
         if let state = state.globalState as? AgoraWhiteboardGlobalState {
             // 发送初始授权状态的消息
             dt.globalState = state
         }
+        
+        self.onNonTeacherFirstLogin()
         
         if let boxState = room.state.windowBoxState,
            let widgetState = boxState.toWidget(){
@@ -397,7 +384,7 @@ extension AgoraWhiteboardWidget {
             let paths = sceneState.scenePath.split(separator: "/")
             if  paths.count > 0 {
                 let newScenePath = String(sceneState.scenePath.split(separator: "/")[0])
-                dt.scenePath = "/(newScenePath)"
+                dt.scenePath = "\(newScenePath)"
             }
             
             // 3. ppt 获取总页数，当前第几页
@@ -417,5 +404,56 @@ extension AgoraWhiteboardWidget {
             // 如果本地被授权，则是本地自己设置的摄像机视角
             dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
         }
+    }
+    
+    func onNonTeacherFirstLogin() {
+        guard let `room` = room,
+              !dt.globalState.teacherFirstLogin else {
+            return
+        }
+        
+        let teacherCompletion: (() -> Void) = { [weak self] in
+            guard let `self` = self else {
+                return
+            }
+            let newState = AgoraWhiteboardGlobalState()
+            newState.materialList = self.dt.globalState.materialList
+            newState.currentSceneIndex = self.dt.globalState.currentSceneIndex
+            // 收回权限
+            newState.grantUsers = Array<String>()
+            // 设置globalState
+            newState.teacherFirstLogin = true
+            
+            room.setGlobalState(newState)
+            
+            // 关闭当前所有课件
+            room.removeScenes("/")
+            // 打开课件
+            if let list = self.dt.coursewareList {
+                for item in list {
+                    self.handleOpenCourseware(info: item)
+                }
+            }
+        }
+        
+        let studentCompletion: (() -> Void) = {
+            // 打开新课件
+            if let list = self.dt.coursewareList {
+                for item in list {
+                    self.handleOpenCourseware(info: item)
+                }
+            }
+            
+            self.sendMessage(signal: .BoardGrantDataChanged([self.info.localUserInfo.userUuid]))
+        }
+        
+        dt.localGranted = true
+        onLocalGrantedChangedForBoardHandle(localGranted: true,
+                                            completion: { [weak self] in
+                                                guard let `self` = self else {
+                                                    return
+                                                }
+                                                self.isTeacher ? teacherCompletion() : studentCompletion()
+                                            })
     }
 }

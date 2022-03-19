@@ -10,66 +10,48 @@ import AgoraLog
 import Masonry
 import Darwin
 
-@objcMembers public class AgoraCloudWidget: AgoraBaseWidget {
+@objcMembers public class AgoraCloudWidget: AgoraBaseWidget, AgoraWidgetLogTube {
+    /**Data*/
+    private var vm: AgoraCloudVM
+    private var serverApi: AgoraCloudServerAPI?
+    var logger: AgoraWidgetLogger
+    /**View*/
     private let cloudView = AgoraCloudView(frame: .zero)
-    private var vm: AgoraCloudVM?
-    private let logger: AgoraLogger
     
     public override init(widgetInfo: AgoraWidgetInfo) {
-        self.logger = AgoraLogger(folderPath: GetWidgetLogFolder(),
-                                  filePrefix: widgetInfo.widgetId,
-                                  maximumNumberOfFiles: 5)
-        // MARK: 在此修改日志是否打印在控制台,默认为不打印
-        self.logger.setPrintOnConsoleType(.all)
+        self.vm = AgoraCloudVM(extra: widgetInfo.extraInfo)
+        
+        let logger = AgoraWidgetLogger(widgetId: widgetInfo.widgetId)
+        #if DEBUG
+        logger.isPrintOnConsole = true
+        #endif
+        self.logger = logger
         
         super.init(widgetInfo: widgetInfo)
         initViews()
-        
     }
     
     public override func onMessageReceived(_ message: String) {
-        log(.info,
-            log: "onMessageReceived:\(message)")
+        log(content: "onMessageReceived:\(message)",
+            type: .info)
         
-        if let info = message.toAppBaseInfo() {
-            initVM(baseInfo: info)
-        }
-    }
-    
-    private func sendMessage(signal: AgoraCloudInteractionSignal) {
-        guard let text = signal.toMessageString() else {
-            return
-        }
-        sendMessage(text)
-    }
-    
-    func log(_ type: AgoraLogType,
-             log: String) {
-        switch type {
-        case .info:
-            logger.log("[Cloud widget] \(log)",
-                       type: .info)
-        case .warning:
-            logger.log("[Cloud widget] \(log)",
-                       type: .warning)
-        case .error:
-            logger.log("[Cloud widget] \(log)",
-                       type: .error)
-        default:
-            logger.log("[Cloud widget] \(log)",
-                       type: .info)
+        if let baseInfo = message.toAppBaseInfo() {
+            serverApi = AgoraCloudServerAPI(baseInfo: baseInfo,
+                                            uid: info.localUserInfo.userUuid)
+            // init private data
+            fetchPrivate(success: nil,
+                         fail: nil)
         }
     }
 }
 
-extension AgoraCloudWidget: AgoraCloudTopViewDelegate, AgoraCloudListViewDelegate {
+extension AgoraCloudWidget: AgoraCloudTopViewDelegate {
     // MARK: - AgoraCloudTopViewDelegate
-    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudCoursewareType) {
-        guard let `vm` = vm else {
-            return
-        }
-        vm.changeSelectedType(type: type)
-        vm.fetchData()
+    func agoraCloudTopViewDidTapAreaButton(type: AgoraCloudUIFileType) {
+        vm.selectedType = type.dataType
+        cloudView.topView.update(selectedType: type)
+        cloudView.topView.set(fileNum: vm.currentFiles.count)
+        cloudView.listView.reloadData()
     }
     
     func agoraCloudTopViewDidTapCloseButton() {
@@ -77,69 +59,124 @@ extension AgoraCloudWidget: AgoraCloudTopViewDelegate, AgoraCloudListViewDelegat
     }
     
     func agoraCloudTopViewDidTapRefreshButton() {
-        guard let `vm` = vm else {
+        // public为extraInfo传入，无需更新
+        guard vm.selectedType == .privateResource else {
             return
         }
-        vm.fetchData()
-    }
-    
-    func agoraCloudTopViewDidSearch(type: AgoraCloudCoursewareType,
-                                    keyStr: String) {
-        switch type {
-        case .publicResource:
-            let newList = vm?.publicFiles.filter({ courseware in
-                courseware.resourceName.contains(keyStr)
-            })
-            cloudView.listView.update(infos: newList?.toCellInfos())
-        case .privateResource:
-            let newList = vm?.privateFiles.filter({ courseware in
-                courseware.resourceName.contains(keyStr)
-            })
-            cloudView.listView.update(infos: newList?.toCellInfos())
+        fetchPrivate {[weak self] list in
+            guard let `self` = self else {
+                return
+            }
+
+            self.cloudView.listView.reloadData()
+        } fail: {[weak self] error in
+            self?.log(content: error.localizedDescription,
+                      type: .error)
         }
     }
     
-    // MARK: - AgoraCloudListViewDelegate
-    func agoraCloudListViewDidSelectedIndex(index: Int) {
-        guard let `vm` = vm,
-              let coursewareInfo = vm.getSelectedInfo(index: index) else {
+    func agoraCloudTopViewDidSearch(keyStr: String) {
+        guard vm.selectedType == .privateResource else {
+            return
+        }
+        fetchPrivate(resourceName: keyStr) {[weak self] list in
+            guard let `self` = self else {
+                return
+            }
+            self.vm.currentFilterStr = keyStr
+            self.cloudView.listView.reloadData()
+        } fail: {[weak self] error in
+            self?.log(content: error.localizedDescription,
+                      type: .error)
+        }
+    }
+}
+
+
+// MARK: - UITableViewDataSource, UITableViewDelegate
+extension AgoraCloudWidget: UITableViewDataSource, UITableViewDelegate {
+    // MARK: UITableViewDataSource
+    public func tableView(_ tableView: UITableView,
+                          numberOfRowsInSection section: Int) -> Int {
+        return vm.currentFiles.count
+    }
+    
+    public func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCell(withIdentifier: cloudView.listView.cellId,
+                                             for: indexPath) as! AgoraCloudCell
+        let info = vm.currentFiles[indexPath.row]
+        cell.iconImageView.image = info.image
+        cell.nameLabel.text = info.name
+        
+        return cell
+    }
+    
+    // MARK: UITableViewDelegate
+    public func tableView(_ tableView: UITableView,
+                   didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath,
+                              animated: true)
+        guard let coursewareInfo = vm.getSelectedInfo(index: indexPath.row) else {
             return
         }
         sendMessage(signal: .OpenCoursewares(coursewareInfo))
     }
 }
 
-extension AgoraCloudWidget: AgoraCloudVMDelegate {
-    func agoraCloudVMDidUpdateList(vm: AgoraCloudVM,
-                                   list: [AgoraCloudCourseware]) {
-        cloudView.listView
-            .update(infos: list.toCellInfos())
-    }
-}
-
-// MARK: private
+// MARK: - private
 private extension AgoraCloudWidget {
+    func sendMessage(signal: AgoraCloudInteractionSignal) {
+        guard let text = signal.toMessageString() else {
+            return
+        }
+        sendMessage(text)
+    }
     func initViews() {
         view.backgroundColor = .clear
+        view.layer.shadowColor = UIColor(hex: 0x2F4192,
+                                    transparency: 0.15)?.cgColor
+        view.layer.shadowOffset = CGSize(width: 0, height: 2)
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 6
         view.addSubview(cloudView)
         
         cloudView.topView.delegate = self
-        cloudView.listView.listDelegate = self
+        cloudView.listView.dataSource = self
+        cloudView.listView.delegate = self
+        cloudView.listView.reloadData()
+        cloudView.topView.update(selectedType: vm.selectedType.uiType)
+        cloudView.topView.set(fileNum: vm.currentFiles.count)
         
         cloudView.mas_makeConstraints { make in
-            make?.left.equalTo()(self.view)
-            make?.right.equalTo()(self.view)
-            make?.top.equalTo()(self.view)
-            make?.bottom.equalTo()(self.view)
+            make?.left.right().top().bottom().equalTo()(self.view)
         }
     }
-    
-    func initVM(baseInfo: AgoraAppBaseInfo) {
-        let cloudVM = AgoraCloudVM(baseInfo: baseInfo,
-                                   uid: info.localUserInfo.userUuid,
-                                   extra: info.extraInfo)
-        cloudVM.delegate = self
-        cloudVM.start()
-        vm = cloudVM
+
+    /// 获取个人数据
+    func fetchPrivate(resourceName: String? = nil,
+                      success: (([AgoraCloudCourseware]) -> ())?,
+                      fail: ((Error) -> ())?) {
+        guard let `serverApi` = serverApi else {
+            return
+        }
+        serverApi.requestResourceInUser(pageNo: 0,
+                                        pageSize: 10,
+                                        resourceName: resourceName) { [weak self] (resp) in
+            guard let `self` = self else {
+                return
+            }
+            var temp = self.vm.privateFiles
+            let list = resp.list.map({ AgoraCloudCourseware(fileItem: $0) })
+            for item in list {
+                if !temp.contains(where: {$0.resourceUuid == item.resourceUuid}) {
+                    temp.append(item)
+                }
+            }
+            self.vm.updatePrivate(temp)
+            success?(temp)
+        } fail: { [weak self](error) in
+            fail?(error)
+        }
     }
 }
