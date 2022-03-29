@@ -9,11 +9,9 @@ import Whiteboard
 
 extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
     public func fireRoomStateChanged(_ modifyState: WhiteRoomState!) {
+        log(.info,
+            content: modifyState.description)
         guard let `room` = room else {
-            return
-        }
-        
-        if let memberState = modifyState.memberState {
             return
         }
         
@@ -23,17 +21,14 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
         }
         
         // 老师离开
-        if let broadcastState = modifyState.broadcastState {
-            if broadcastState.broadcasterId == nil {
-                room.scalePpt(toFit: .continuous)
-                room.scaleIframeToFit()
-            }
-            return
+        if let broadcastState = modifyState.broadcastState,
+           broadcastState.broadcasterId == nil {
+            room.scalePpt(toFit: .continuous)
+            room.scaleIframeToFit()
         }
         
         if let state = modifyState.globalState as? AgoraWhiteboardGlobalState {
             dt.globalState = state
-            return
         }
         
         if let sceneState = modifyState.sceneState {
@@ -62,14 +57,12 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
             dt.page = AgoraBoardPageInfo(index: sceneState.index,
                                          count: sceneState.scenes.count)
             ifUseLocalCameraConfig()
-            return
         }
         
         if let cameraState = modifyState.cameraState,
            dt.localGranted {
             // 如果本地被授权，则是本地自己设置的摄像机视角
             dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
-            return
         }
     }
     
@@ -155,7 +148,7 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
     }
     
     func onLocalGrantedChangedForBoardHandle(localGranted: Bool,
-                                             completion: (() -> Void)?) {
+                                             completion: ((Bool) -> Void)?) {
         log(.info,
             content: "local granted: \(localGranted)")
         
@@ -169,6 +162,7 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
                             if let error = error {
                                 self.log(.error,
                                          content: "setWritable error: \(error.localizedDescription)")
+                                completion?(false)
                             } else {
                                 self.room?.disableCameraTransform(!isWritable)
                                 self.ifUseLocalCameraConfig()
@@ -178,8 +172,8 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
                                     self.room?.setMemberState(self.dt.baseMemberState)
                                     self.initMemberStateFlag = true
                                 }
+                                completion?(isWritable)
                             }
-                            completion?()
                           })
     }
     

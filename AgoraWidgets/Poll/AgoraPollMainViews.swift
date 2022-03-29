@@ -46,6 +46,8 @@ class AgoraPollReceiverView: UIView {
         layer.cornerRadius = 4
         layer.masksToBounds = true
         
+        backgroundColor = .white
+        
         addSubviews([headerView,
                      titleLabel,
                      tableView,

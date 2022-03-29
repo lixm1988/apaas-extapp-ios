@@ -11,7 +11,7 @@ import Whiteboard
 
 protocol AGBoardWidgetDTDelegate: NSObjectProtocol {
     func onLocalGrantedChangedForBoardHandle(localGranted: Bool,
-                                             completion: (() -> Void)?)
+                                             completion: ((Bool) -> Void)?)
         
     func onScenePathChanged(path: String)
     func onGrantUsersChanged(grantUsers: [String])
@@ -31,9 +31,9 @@ class AgoraWhiteboardWidgetDT {
     var baseMemberState: WhiteMemberState = {
         var state = WhiteMemberState()
         state.currentApplianceName = WhiteApplianceNameKey.ApplianceClicker
-        state.strokeWidth = NSNumber(6)
+        state.strokeWidth = NSNumber(2)
         state.strokeColor = UIColor(hex: 0x0073FF)?.getRGBAArr()
-        state.textSize = NSNumber(18)
+        state.textSize = NSNumber(36)
         return state
     }()
     
