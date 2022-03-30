@@ -14,7 +14,7 @@ Pod::Spec.new do |spec|
   spec.source       = { :git => "ssh://git@git.agoralab.co/aduc/open-apaas-extapp-ios.git", :tag => "AgoraWidgets_v" + "#{spec.version.to_s}" }
   
   spec.source_files = "Common/*.{h,m,swift}",
-                      "RenderSpread/**/*.{h,m,swift}",
+                      "StreamWindow/**/*.{h,m,swift}",
                       "Cloud/**/*.{h,m,swift}",
                       "Whiteboard/**/*.{h,m,swift}",
                       "RtmIM/**/*.{h,m,swift}",
