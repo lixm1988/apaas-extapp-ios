@@ -259,10 +259,9 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             if (status == permissions) {
                 //limit权限
-                weakself.imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                weakself.imagePicker.mediaTypes = @[(NSString *)kUTTypeImage, (NSString *)kUTTypeMovie];
-                UIViewController *viewController = [[weakself class] findCurrentShowingViewController];
-                [viewController presentViewController:weakself.imagePicker animated:YES completion:nil];
+                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_request" ag_localizedIn:@"AgoraWidgets"]
+                                     duration:2
+                                finishHandler:nil];
                 return;
             }
             switch (status) {
