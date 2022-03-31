@@ -46,6 +46,7 @@ fcr_hyphenate_im_recall_a_message = "Recall a message";
 fcr_hyphenate_im_muted_by_teacher = "muted by {xxx} teacher";
 fcr_hyphenate_im_unmuted_by_teacher = "unmuted by {xxx} teacher";
 fcr_hyphenate_im_photo_permission_disabled = "Album permission not enabled";
+fcr_hyphenate_im_photo_permission_request = "Please turn on all photos access in system settings";
 fcr_hyphenate_im_image_too_large = "The picture is too large, please choose another";
 
 // Cloud

@@ -200,11 +200,9 @@
         }else{
             PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
             if(result.count == 0){
-                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_disabled" ag_localizedIn:@"AgoraWidgets"] duration:2 finishHandler:^{
-                    if (@available(iOS 14, *)) {
-                        [[PHPhotoLibrary sharedPhotoLibrary] presentLimitedLibraryPickerFromViewController:[ChatBar findCurrentShowingViewController]];
-                    }
-                }];
+                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_request" ag_localizedIn:@"AgoraWidgets"]
+                                     duration:2
+                                finishHandler:nil];
             }else{
                 [result enumerateObjectsUsingBlock:^(PHAsset *asset , NSUInteger idx, BOOL *stop){
                     if (asset) {

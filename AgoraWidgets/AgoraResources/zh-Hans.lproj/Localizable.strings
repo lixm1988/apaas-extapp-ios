@@ -46,6 +46,7 @@ fcr_hyphenate_im_recall_a_message = "撤回一条消息";
 fcr_hyphenate_im_muted_by_teacher = "您被{xxx}老师禁止发言了";
 fcr_hyphenate_im_unmuted_by_teacher = "您被{xxx}老师允许发言了";
 fcr_hyphenate_im_photo_permission_disabled = "获取相册图片权限失败";
+fcr_hyphenate_im_photo_permission_request = "请在系统设置中打开所有照片访问权限";
 fcr_hyphenate_im_image_too_large = "图片太大，请选择其他图片";
 
 // Cloud
