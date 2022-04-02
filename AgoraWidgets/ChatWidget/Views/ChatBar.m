@@ -11,6 +11,7 @@
 #import <Photos/Photos.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <WHToast/WHToast.h>
+#import <PhotosUI/PHPhotoLibrary+PhotosUISupport.h>
 @import AgoraUIBaseViews;
 
 #define CONTAINVIEW_HEIGHT 40
@@ -199,7 +200,9 @@
         }else{
             PHFetchResult *result = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
             if(result.count == 0){
-                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_disabled" ag_localizedIn:@"AgoraWidgets"] duration:2 finishHandler:nil];
+                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_request" ag_localizedIn:@"AgoraWidgets"]
+                                     duration:2
+                                finishHandler:nil];
             }else{
                 [result enumerateObjectsUsingBlock:^(PHAsset *asset , NSUInteger idx, BOOL *stop){
                     if (asset) {
@@ -256,10 +259,9 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             if (status == permissions) {
                 //limit权限
-                weakself.imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-                weakself.imagePicker.mediaTypes = @[(NSString *)kUTTypeImage, (NSString *)kUTTypeMovie];
-                UIViewController *viewController = [[weakself class] findCurrentShowingViewController];
-                [viewController presentViewController:weakself.imagePicker animated:YES completion:nil];
+                [WHToast showErrorWithMessage:[@"fcr_hyphenate_im_photo_permission_request" ag_localizedIn:@"AgoraWidgets"]
+                                     duration:2
+                                finishHandler:nil];
                 return;
             }
             switch (status) {
