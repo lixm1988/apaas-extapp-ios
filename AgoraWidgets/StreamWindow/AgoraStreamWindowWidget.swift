@@ -20,9 +20,22 @@ import AgoraWidget
         self.logger = logger
         
         super.init(widgetInfo: widgetInfo)
+        
+        log(content: "[StreamWindow Widget]:create",
+            extra: "widgetId:\(widgetInfo.widgetId)",
+            type: .info)
     }
     
     public override func onWidgetDidLoad() {
+        initData()
+    }
+    
+    public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
+                                                       cause: [String : Any]?,
+                                                       keyPaths: [String]) {
+        guard renderInfo == nil else {
+            return
+        }
         initData()
     }
 }
@@ -46,6 +59,9 @@ private extension AgoraStreamWindowWidget {
         let renderInfo = AgoraStreamWindowRenderInfo(userUuid: info.userUuid,
                                                      streamId: streamId)
         self.renderInfo = renderInfo
+        log(content: "[StreamWindow Widget]:send render info",
+            extra: "userUuid:\(info.userUuid),streamId:\(streamId)",
+            type: .info)
         sendMessage(.RenderInfo(renderInfo))
     }
 }
