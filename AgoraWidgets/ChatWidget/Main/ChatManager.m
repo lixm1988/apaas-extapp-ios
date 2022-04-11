@@ -363,6 +363,45 @@ static BOOL isSDKInited = NO;
     }
 }
 
+- (void)muteAllMembers:(BOOL)muteAll
+{
+    __weak typeof(self) weakself = self;
+    void (^completion)(NSString* action)  = ^(NSString* action){
+        EMCmdMessageBody* cmdBody = [[EMCmdMessageBody alloc] initWithAction:action];
+        EMMessage* message = [[EMMessage alloc] initWithConversationID:weakself.chatRoomId from:weakself.user.username to:weakself.chatRoomId body:cmdBody ext:nil];
+        message.chatType = EMChatTypeChatRoom;
+        [[[EMClient sharedClient] chatManager] sendMessage:message progress:nil completion:^(EMMessage *message, EMError *error) {
+            if(!error) {
+                [weakself.dataLock lock];
+                [weakself.dataArray addObject:message];
+                weakself.latestMsgId = message.messageId;
+                [weakself.dataLock unlock];
+                if([weakself.delegate respondsToSelector:@selector(chatMessageDidReceive)]) {
+                    [weakself.delegate chatMessageDidReceive];
+                }
+            }
+        }];
+    };
+    if(muteAll)
+        [[[EMClient sharedClient] roomManager] muteAllMembersFromChatroom:self.chatRoomId completion:^(EMChatroom *aChatroom, EMError *aError) {
+            if(!aError) {
+                weakself.isAllMuted = YES;
+                completion(@"setAllMute");
+            }else{
+                [weakself.delegate exceptionDidOccur:aError.errorDescription];
+            }
+        }];
+    else
+        [[[EMClient sharedClient] roomManager] unmuteAllMembersFromChatroom:self.chatRoomId completion:^(EMChatroom *aChatroom, EMError *aError) {
+            if(!aError) {
+                self.isAllMuted = NO;
+                completion(@"removeAllMute");
+            }else{
+                [weakself.delegate exceptionDidOccur:aError.errorDescription];
+            }
+        }];
+}
+
 #pragma mark - EMClientDelegate
 - (void)connectionStateDidChange:(EMConnectionState)aConnectionState
 {
