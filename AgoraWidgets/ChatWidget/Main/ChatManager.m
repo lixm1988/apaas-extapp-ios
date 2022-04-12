@@ -369,6 +369,18 @@ static BOOL isSDKInited = NO;
     void (^completion)(NSString* action)  = ^(NSString* action){
         EMCmdMessageBody* cmdBody = [[EMCmdMessageBody alloc] initWithAction:action];
         EMMessage* message = [[EMMessage alloc] initWithConversationID:weakself.chatRoomId from:weakself.user.username to:weakself.chatRoomId body:cmdBody ext:nil];
+        NSMutableDictionary* ext = [@{kMsgType:@(ChatMsgTypeCommon),
+                                      @"role": [NSNumber numberWithInteger:weakself.user.role]} mutableCopy];
+        if(weakself.user.nickname.length > 0 ){
+            [ext setObject:weakself.user.nickname forKey:kNickName];
+        }
+        if(weakself.user.avatarurl.length > 0 ){
+            [ext setObject:weakself.user.avatarurl forKey:kAvatarUrl];
+        }
+        if(weakself.user.roomUuid.length > 0) {
+            [ext setObject:weakself.user.roomUuid forKey:kRoomUuid];
+        }
+        message.ext = ext;
         message.chatType = EMChatTypeChatRoom;
         [[[EMClient sharedClient] chatManager] sendMessage:message progress:nil completion:^(EMMessage *message, EMError *error) {
             if(!error) {
