@@ -14,7 +14,7 @@ protocol AGBoardWidgetDTDelegate: NSObjectProtocol {
                                              completion: ((Bool) -> Void)?)
         
     func onScenePathChanged(path: String)
-    func onGrantUsersChanged(grantUsers: [String])
+    func onGrantedUsersChanged(grantedUsers: [String])
     func onPageIndexChanged(index: Int)
     func onPageCountChanged(count: Int)
     
@@ -65,47 +65,44 @@ class AgoraWhiteboardWidgetDT {
         }
     }
     
-    var globalState = AgoraWhiteboardGlobalState() {
-        didSet {
-            // 授权相关
-            if localUserInfo.userRole != "teacher" {
-                // 若为学生，涉及localGranted
-                if globalState.grantUsers.contains(localUserInfo.userUuid) {
-                    localGranted = true
-                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: true,
-                                                                  completion: nil)
-                } else {
-                    localGranted = false
-                    delegate?.onLocalGrantedChangedForBoardHandle(localGranted: false,
-                                                                  completion: nil)
-                }
-            }
-            
-            delegate?.onGrantUsersChanged(grantUsers: globalState.grantUsers)
-            
-        }
-    }
+    var globalState = AgoraWhiteboardGlobalState()
     
     var currentMemberState: WhiteMemberState?
     
     var reconnectTime: Int = 0
     
+    var isJoining: Bool = false
+    
     // from properties
     var localCameraConfigs = [String: AgoraWhiteBoardCameraConfig]()
 
-    var localGranted: Bool = false
+    var localGranted: Bool = false {
+        didSet {
+            delegate?.onLocalGrantedChangedForBoardHandle(localGranted: localGranted,
+                                                          completion: nil)
+        }
+    }
+    
+    var grantedUsers = [String]() {
+        didSet {
+            delegate?.onGrantedUsersChanged(grantedUsers: grantedUsers)
+        }
+    }
     
     // config
     var propsExtra: AgoraWhiteboardPropExtra? {
         didSet {
-            if let props = propsExtra {
-                if props.boardAppId != "",
-                   props.boardRegion != "",
-                   props.boardId != "",
-                   props.boardToken != "" {
-                    delegate?.onConfigComplete()
-                }
+            guard let props = propsExtra else {
+                return
             }
+            if props.boardAppId != "",
+               props.boardRegion != "",
+               props.boardId != "",
+               props.boardToken != "" {
+                delegate?.onConfigComplete()
+            }
+            
+            setUpGrantedUsers()
         }
     }
     var configExtra: AgoraWhiteboardExtraInfo
@@ -122,17 +119,21 @@ class AgoraWhiteboardWidgetDT {
         }
     }
     
-    func makeGlobalState(materialList: [AgoraWhiteBoardTask]? = nil,
-                         currentSceneIndex: Int? = nil,
-                         grantUsers: Array<String>? = nil,
-                         teacherFirstLogin: Bool? = nil) -> AgoraWhiteboardGlobalState {
-        let newState = AgoraWhiteboardGlobalState()
-        newState.materialList = materialList ?? globalState.materialList
-        newState.currentSceneIndex = currentSceneIndex ?? globalState.currentSceneIndex
-        newState.grantUsers = grantUsers ?? globalState.grantUsers
-        newState.teacherFirstLogin = teacherFirstLogin ?? globalState.teacherFirstLogin
-        
-        return newState
+    func setUpGrantedUsers() {
+        guard localUserInfo.userRole != "teacher" else {
+            return
+        }
+        if let grant = propsExtra?.grantedUsers {
+            // 若为学生，涉及localGranted
+            if grant.contains {$0.key == localUserInfo.userUuid} {
+                localGranted = true
+            } else {
+                localGranted = false
+            }
+            grantedUsers = grant.map({return $0.key})
+        } else {
+            localGranted = false
+        }
     }
     
     func updateMemberState(state: AgoraBoardMemberState) {

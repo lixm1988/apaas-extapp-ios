@@ -17,8 +17,7 @@ struct AgoraWhiteboardPropExtra: Decodable {
     var boardId: String
     var boardToken: String
     var boardRegion: String
-    var follow: Int32? // 是否跟随
-    var grantUsers: [String]?
+    var grantedUsers: [String: Bool]?
 }
 
 struct AgoraWhiteboardExtraInfo : Convertable {
@@ -85,8 +84,6 @@ struct AgoraWhiteboardExtraInfo : Convertable {
 @objcMembers public class AgoraWhiteboardGlobalState: WhiteGlobalState {
     var materialList: [AgoraWhiteBoardTask]?
     var currentSceneIndex: Int = 0
-    var grantUsers = Array<String>()
-    var teacherFirstLogin: Bool = false
 }
 
 @objc class AgoraWhiteBoardCameraConfig : NSObject {

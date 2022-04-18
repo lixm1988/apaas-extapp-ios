@@ -26,7 +26,7 @@ import AgoraWidget
             type: .info)
     }
     
-    public override func onWidgetDidLoad() {
+    public override func onLoad() {
         initData()
     }
     
@@ -53,8 +53,8 @@ private extension AgoraStreamWindowWidget {
         guard let propsDic = info.roomProperties as? Dictionary<String, String>,
               let info = AgoraStreamWindowExtraInfo.decode(propsDic),
               streamId != "" else {
-                  return
-              }
+            return
+        }
         
         let renderInfo = AgoraStreamWindowRenderInfo(userUuid: info.userUuid,
                                                      streamId: streamId)

@@ -59,8 +59,8 @@ import Masonry
         super.init(widgetInfo: widgetInfo)
     }
     
-    public override func onWidgetDidLoad() {
-        super.onWidgetDidLoad()
+    public override func onLoad() {
+        super.onLoad()
         initViews()
         initConstraints()
         updateRoomData()

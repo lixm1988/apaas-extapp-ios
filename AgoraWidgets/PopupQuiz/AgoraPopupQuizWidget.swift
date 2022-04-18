@@ -64,8 +64,8 @@ import UIKit
         super.init(widgetInfo: widgetInfo)
     }
     
-    public override func onWidgetDidLoad() {
-        super.onWidgetDidLoad()
+    public override func onLoad() {
+        super.onLoad()
         createViews()
         createConstraint()
         
@@ -89,6 +89,10 @@ import UIKit
             objectCreateTimestamp = timestamp
             initCurrentTimestamp()
             shouldStartTime()
+        }
+        
+        if message == "hideSubmit" {
+            contentView.button.isHidden = true
         }
         
         log(content: message,

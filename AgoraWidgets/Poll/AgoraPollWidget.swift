@@ -72,8 +72,8 @@ import Armin
     }
     
     // MARK: widget callback
-    public override func onWidgetDidLoad() {
-        super.onWidgetDidLoad()
+    public override func onLoad() {
+        super.onLoad()
         initViews()
         initConstraints()
         
@@ -117,6 +117,10 @@ import Armin
                                            roomId: info.roomInfo.roomUuid,
                                            uid: info.localUserInfo.userUuid,
                                            logTube: self)
+        }
+        
+        if message == "hideSubmit" {
+            receiverView.submitButton.isHidden = true
         }
         
         log(content: message,

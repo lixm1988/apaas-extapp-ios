@@ -95,7 +95,7 @@ extension AgoraWhiteboardWidget: WhiteRoomCallbackDelegate {
 extension AgoraWhiteboardWidget: WhiteCommonCallbackDelegate {
     public func throwError(_ error: Error) {
         log(.error,
-            content: "\(error.localizedDescription)")
+            content: "WhiteCommonCallbackDelegate throwError :\(error.localizedDescription)")
     }
     
     public func logger(_ dict: [AnyHashable : Any]) {
@@ -141,10 +141,10 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
         initCondition.configComplete = true
     }
     
-    func onGrantUsersChanged(grantUsers: [String]) {
+    func onGrantedUsersChanged(grantedUsers: [String]) {
         log(.info,
-            content: "grant users changed: \(grantUsers)")
-        sendMessage(signal: .BoardGrantDataChanged(grantUsers))
+            content: "granted users changed: \(grantedUsers)")
+        sendMessage(signal: .BoardGrantDataChanged(grantedUsers))
     }
     
     func onLocalGrantedChangedForBoardHandle(localGranted: Bool,

@@ -55,8 +55,10 @@ struct InitCondition {
         self.dt.delegate = self
         
         initCondition.needInit = true
-        
-        if let wbProperties = widgetInfo.roomProperties?.toObj(AgoraWhiteboardPropExtra.self) {
+    }
+    
+    public override func onLoad() {
+        if let wbProperties = info.roomProperties?.toObj(AgoraWhiteboardPropExtra.self) {
             dt.propsExtra = wbProperties
         }
     }
@@ -110,7 +112,7 @@ struct InitCondition {
                                                        cause: [String : Any]?,
                                                        keyPaths: [String]) {
         log(.info,
-            content: "onWidgetRoomPropertiesUpdated:\(keyPaths)")
+            content: "onWidgetRoomPropertiesDeleted:\(keyPaths)")
         guard let wbProperties = properties?.toObj(AgoraWhiteboardPropExtra.self) else {
             dt.propsExtra = nil
             return
@@ -180,13 +182,26 @@ extension AgoraWhiteboardWidget {
         contentView.mas_makeConstraints { make in
             make?.left.right().top().bottom().equalTo()(view)
         }
+        view.layoutIfNeeded()
         WhiteDisplayerState.setCustomGlobalStateClass(AgoraWhiteboardGlobalState.self)
         
         initCondition.needInit = false
     }
     
     func joinWhiteboard() {
-        let ratio = view.bounds.height / view.bounds.width
+        view.superview?.layoutIfNeeded()
+        
+        let width = view.bounds.width
+        let height = view.bounds.height
+        
+        var ratio: CGFloat
+        
+        if width < 1 || height < 1 {
+            ratio = (16.0 / 9.0)
+        } else {
+            ratio = height / width
+        }
+        
         guard let sdk = whiteSDK,
               let roomConfig = dt.getWhiteRoomConfigToJoin(ratio: ratio) else {
             return
@@ -197,6 +212,7 @@ extension AgoraWhiteboardWidget {
         }
         log(.info,
             content: "start join")
+        dt.isJoining = true
         sdk.joinRoom(with: roomConfig,
                      callbacks: self) { [weak self] (success, room, error) in
             DispatchQueue.main.async {
@@ -205,11 +221,12 @@ extension AgoraWhiteboardWidget {
             guard let `self` = self else {
                 return
             }
+            self.dt.isJoining = false
             guard success, error == nil ,
                   let whiteRoom = room else {
                 self.log(.error,
                          content: "join room error :\(error?.localizedDescription)")
-                self.dt.reconnectTime += 2
+                self.dt.reconnectTime += 1
                 self.sendMessage(signal: .BoardPhaseChanged(.Disconnected))
                 return
             }
@@ -283,11 +300,20 @@ extension AgoraWhiteboardWidget {
     }
     
     func handleBoardGrant(list: Array<String>?) {
-        guard let `room` = room else {
-            return
+        var granedtUsers = [String: Bool]()
+        if let uidList = list {
+            for id in uidList {
+                granedtUsers[id] = true
+            }
         }
-        let newState = dt.makeGlobalState(grantUsers: list)
-        room.setGlobalState(newState)
+        updateRoomProperties(["grantedUsers": granedtUsers],
+                             cause: nil) { [weak self] in
+            self?.log(.info,
+                      content: "granted users: \(list ?? [])")
+        } failure: { [weak self] (error) in
+            self?.log(.error,
+                      content: "granted users: \(list ?? [])")
+        }
     }
     
     func handlePageChange(changeType: AgoraBoardPageChangeType) {
@@ -346,17 +372,15 @@ extension AgoraWhiteboardWidget {
         // undo和redo只有在disableSerialization为false时生效
         room.disableSerialization(false)
 
-        // 暂时删除teacherFirstLogin字段判断
-//        self.onIfTeacherFirstLogin(state: state.globalState as? AgoraWhiteboardGlobalState)
         if let globalState = state.globalState as? AgoraWhiteboardGlobalState {
             dt.globalState = globalState
         }
         
         if isTeacher {
            dt.localGranted = true
-           onLocalGrantedChangedForBoardHandle(localGranted: true,
-                                               completion: nil)
        }
+        
+        dt.setUpGrantedUsers()
         
         if let boxState = room.state.windowBoxState,
            let widgetState = boxState.toWidget(){
@@ -414,68 +438,6 @@ extension AgoraWhiteboardWidget {
            dt.localGranted {
             // 如果本地被授权，则是本地自己设置的摄像机视角
             dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
-        }
-    }
-    
-    func onIfTeacherFirstLogin(state: AgoraWhiteboardGlobalState?) {
-        guard let `room` = room else {
-            return
-        }
-        
-        let teacherCompletion: (() -> Void) = { [weak self] in
-            guard let `self` = self else {
-                return
-            }
-            let newState = AgoraWhiteboardGlobalState()
-            newState.materialList = self.dt.globalState.materialList
-            newState.currentSceneIndex = self.dt.globalState.currentSceneIndex
-            // 收回权限
-            newState.grantUsers = Array<String>()
-            // 设置globalState
-            newState.teacherFirstLogin = true
-            
-            room.setGlobalState(newState)
-            
-            // 关闭当前所有课件
-            room.removeScenes("/")
-            // 打开课件
-            if let list = self.dt.coursewareList {
-                for item in list {
-                    self.handleOpenCourseware(info: item)
-                }
-            }
-        }
-        
-        let studentCompletion: (() -> Void) = {
-            // 打开新课件
-            if let list = self.dt.coursewareList {
-                for item in list {
-                    self.handleOpenCourseware(info: item)
-                }
-            }
-            
-            self.sendMessage(signal: .BoardGrantDataChanged([self.info.localUserInfo.userUuid]))
-        }
-        
-        if !dt.globalState.teacherFirstLogin {
-            dt.localGranted = true
-            onLocalGrantedChangedForBoardHandle(localGranted: true,
-                                                completion: { [weak self] success in
-                                                    guard let `self` = self,
-                                                          success else {
-                                                        return
-                                                    }
-                                                    self.isTeacher ? teacherCompletion() : studentCompletion()
-                                                })
-        } else {
-            if let globalState = state {
-                dt.globalState = globalState
-            }
-            if isTeacher {
-               dt.localGranted = true
-               onLocalGrantedChangedForBoardHandle(localGranted: true,
-                                                   completion: nil)
-           }
         }
     }
 }

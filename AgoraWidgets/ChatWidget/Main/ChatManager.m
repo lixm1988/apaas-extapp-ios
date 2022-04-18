@@ -26,6 +26,8 @@ static BOOL isSDKInited = NO;
 @property (nonatomic,strong) EMChatroom* chatRoom;
 @property (nonatomic,strong) NSMutableArray<EMMessage*>* askAndAnswerMsgs;
 @property (nonatomic,strong) NSString* latestMsgId;
+@property (nonatomic, assign) NSInteger loginRetryCount;
+@property (nonatomic, assign) NSInteger loginRetryMaxCount;
 @end
 
 @implementation ChatManager
@@ -41,6 +43,8 @@ static BOOL isSDKInited = NO;
         self.user = aUserConfig;
         self.chatRoomId = aChatRoomId;
         self.isLogin = NO;
+        self.loginRetryCount = 0;
+        self.loginRetryMaxCount = 10;
         [self initHyphenateSDK];
     }
     return self;
@@ -59,42 +63,72 @@ static BOOL isSDKInited = NO;
     isSDKInited = YES;
 }
 
+- (void)dealloc {
+    [self logout];
+}
+
 - (void)launch
 {
     __weak typeof(self) weakself = self;
-    if(isSDKInited && self.user.username.length > 0) {
-        NSString* lowercaseName = [self.user.username lowercaseString];
-        weakself.state = ChatRoomStateLogin;
-        
-        [[EMClient sharedClient] loginWithUsername:lowercaseName
-                                          password:weakself.password
-                                        completion:^(NSString *aUsername,
-                                                     EMError *aError) {
-            if(!aError) {
-                weakself.isLogin = YES;
-            }else{
-                if(aError.code == EMErrorUserNotFound) {
-                    [[EMClient sharedClient] registerWithUsername:lowercaseName
-                                                         password:weakself.password
-                                                       completion:^(NSString *aUsername,
-                                                                    EMError *aError) {
-                        if(!aError) {
-                            [[EMClient sharedClient] loginWithUsername:lowercaseName
-                                                              password:weakself.password
-                                                            completion:^(NSString *aUsername,
-                                                                         EMError *aError) {
-                                if(!aError) {
-                                    weakself.isLogin = YES;
-                                }
-                            }];
-                        }
-                    }];
-                }else{
-                    weakself.state = ChatRoomStateLoginFailed;
-                }
-            }
-        }];
+    
+    NSString* lowercaseName = [self.user.username lowercaseString];
+    weakself.state = ChatRoomStateLogin;
+    
+    [self _launch:^(NSString *aUsername,
+                    EMError *aError) {
+        weakself.state = ChatRoomStateLoginFailed;
+    }];
+}
+
+- (void)_launch:(void (^)(NSString *aUsername, EMError *aError))aCompletionBlock
+{
+    __weak typeof(self) weakself = self;
+    NSString* lowercaseName = [self.user.username lowercaseString];
+    
+    if (!(isSDKInited && self.user.username.length > 0)) {
+        return;
     }
+    
+    [[EMClient sharedClient] loginWithUsername:lowercaseName
+                                      password:weakself.password
+                                    completion:^(NSString *aUsername,
+                                                 EMError *aError) {
+        if (aError == nil || aError.code == EMErrorUserAlreadyLoginSame) {
+            weakself.isLogin = YES;
+            return;
+        }
+        
+        if (aError.code == EMErrorUserNotFound) {
+            [[EMClient sharedClient] registerWithUsername:lowercaseName
+                                                 password:weakself.password
+                                               completion:^(NSString *aUsername,
+                                                            EMError *aError) {
+                if (aError != nil) {
+                    aCompletionBlock(aUsername,
+                                     aError);
+                } else {
+                    // 重新登录
+                    [weakself _launch:aCompletionBlock];
+                }
+            }];
+        } else {
+            weakself.loginRetryCount += 1;
+            
+            if (weakself.loginRetryCount > weakself.loginRetryMaxCount) {
+                aCompletionBlock(aUsername,
+                                 aError);
+                return;
+            }
+            
+            dispatch_time_t after = dispatch_time(DISPATCH_TIME_NOW,
+                                                  (int64_t)(weakself.loginRetryCount * NSEC_PER_SEC * 0.5));
+            
+            dispatch_after(after,
+                           dispatch_get_main_queue(), ^{
+                [weakself _launch:aCompletionBlock];
+            });
+        }
+    }];
 }
 
 - (void)logout
@@ -114,13 +148,18 @@ static BOOL isSDKInited = NO;
         if(self.chatRoomId.length > 0) {
             __weak typeof(self) weakself = self;
             weakself.state = ChatRoomStateJoining;
-            [[EMClient sharedClient].roomManager joinChatroom:self.chatRoomId completion:^(EMChatroom *aChatroom, EMError *aError) {
+            [[EMClient sharedClient].roomManager joinChatroom:self.chatRoomId
+                                                   completion:^(EMChatroom *aChatroom,
+                                                                EMError *aError) {
                 if(!aError) {
                     self.chatRoom = aChatroom;
                     weakself.state = ChatRoomStateJoined;
                     [weakself fetchChatroomData];
-                }else{
-                    weakself.state = ChatRoomStateJoinFail;
+                } else {
+                    [weakself _launch:^(NSString *aUsername,
+                                        EMError *aError) {
+                                            
+                    }];
                 }
             }];
         }
@@ -373,7 +412,10 @@ static BOOL isSDKInited = NO;
             if(!aError || aError.code == EMErrorGroupAlreadyJoined) {
                 [weakself fetchChatroomData];
             }else{
-                weakself.state = ChatRoomStateJoinFail;
+                [weakself _launch:^(NSString *aUsername,
+                                    EMError *aError) {
+                                    
+                }];
             }
         }];
     }
