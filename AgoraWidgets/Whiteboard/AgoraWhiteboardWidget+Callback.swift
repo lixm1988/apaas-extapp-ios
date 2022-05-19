@@ -152,13 +152,13 @@ extension AgoraWhiteboardWidget: AGBoardWidgetDTDelegate {
         log(.info,
             content: "local granted: \(localGranted)")
         
-        self.room?.setViewMode(localGranted ? .freedom : .broadcaster)
+        self.room?.setViewMode(.broadcaster)
         guard let _ = room else {
             return
         }
         dt.isSettingWritable = true
         room?.setWritable(localGranted,
-                          completionHandler: {[weak self] isWritable, error in
+                          completionHandler: { [weak self] isWritable, error in
             guard let `self` = self else {
                 return
             }

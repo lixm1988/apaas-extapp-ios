@@ -27,16 +27,18 @@ import AgoraWidget
     }
     
     public override func onLoad() {
-        initData()
+//        initData()
     }
     
     public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
-        guard renderInfo == nil else {
-            return
-        }
-        initData()
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
+//        if renderInfo == nil {
+//            initData()
+//        } else {
+            updateExtra(properties: properties)
+//        }
     }
 }
 
@@ -50,18 +52,26 @@ private extension AgoraStreamWindowWidget {
     func initData() {
         let streamId = String(info.widgetId.split(separator: "-")[1])
         
-        guard let propsDic = info.roomProperties as? Dictionary<String, String>,
+        guard let propsDic = info.roomProperties as? Dictionary<String, Any>,
               let info = AgoraStreamWindowExtraInfo.decode(propsDic),
               streamId != "" else {
             return
         }
         
         let renderInfo = AgoraStreamWindowRenderInfo(userUuid: info.userUuid,
-                                                     streamId: streamId)
+                                                     streamId: streamId,
+                                                     zIndex: info.zIndex)
         self.renderInfo = renderInfo
         log(content: "[StreamWindow Widget]:send render info",
             extra: "userUuid:\(info.userUuid),streamId:\(streamId)",
             type: .info)
         sendMessage(.RenderInfo(renderInfo))
+    }
+    
+    func updateExtra(properties: [String : Any]) {
+        guard let index = properties["zIndex"] as? Int else {
+            return
+        }
+        sendMessage(.ViewZIndex(index))
     }
 }

@@ -17,7 +17,7 @@ import Armin
     // Origin Data
     private var roomData: AgoraPollRoomPropertiesData?
     private var userData: AgoraPollUserPropertiesData?
-    private var baseInfo: AgoraAppBaseInfo?
+    private var baseInfo: AgoraWidgetRequestKeys?
     
     // View Data
     private var state: AgoraPollViewState = .unselected {
@@ -84,10 +84,12 @@ import Armin
     
     public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
         super.onWidgetRoomPropertiesUpdated(properties,
                                             cause: cause,
-                                            keyPaths: keyPaths)
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
         updateRoomData()
         updateViewData()
         
@@ -98,10 +100,12 @@ import Armin
     
     public override func onWidgetUserPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
         super.onWidgetUserPropertiesUpdated(properties,
                                             cause: cause,
-                                            keyPaths: keyPaths)
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
         updateUserData()
         
         log(content: properties.jsonString() ?? "nil",
@@ -112,7 +116,7 @@ import Armin
     public override func onMessageReceived(_ message: String) {
         super.onMessageReceived(message)
         
-        if let baseInfo = message.toAppBaseInfo() {
+        if let baseInfo = message.toRequestKeys() {
             serverAPI = AgoraPollServerAPI(baseInfo: baseInfo,
                                            roomId: info.roomInfo.roomUuid,
                                            uid: info.localUserInfo.userUuid,

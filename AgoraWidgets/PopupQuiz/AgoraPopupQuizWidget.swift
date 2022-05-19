@@ -39,7 +39,7 @@ import UIKit
     }
     
     // Origin Data
-    private var baseInfo: AgoraAppBaseInfo?
+    private var baseInfo: AgoraWidgetRequestKeys?
     
     private var roomData: AgoraPopupQuizRoomPropertiesData?
     private var userData: AgoraPopupQuizUserPropertiesData?
@@ -80,7 +80,7 @@ import UIKit
     public override func onMessageReceived(_ message: String) {
         super.onMessageReceived(message)
         
-        if let info = message.toAppBaseInfo() {
+        if let info = message.toRequestKeys() {
             baseInfo = info
             initServerAPI()
         }
@@ -101,10 +101,12 @@ import UIKit
     
     public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
         super.onWidgetRoomPropertiesUpdated(properties,
                                             cause: cause,
-                                            keyPaths: keyPaths)
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
         updateRoomData()
         updateViewData()
         updateViewFrame()
@@ -117,10 +119,12 @@ import UIKit
     
     public override func onWidgetUserPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
         super.onWidgetUserPropertiesUpdated(properties,
                                             cause: cause,
-                                            keyPaths: keyPaths)
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
         
         updateUserData()
         

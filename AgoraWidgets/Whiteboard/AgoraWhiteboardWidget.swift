@@ -9,6 +9,7 @@ import AgoraWidget
 import Whiteboard
 import AgoraLog
 import Masonry
+import Armin
 
 struct InitCondition {
     var configComplete = false
@@ -40,6 +41,8 @@ struct InitCondition {
         }
     }
     
+    private var serverAPI: AgoraWhiteBoardServerAPI?
+    
     // MARK: - AgoraBaseWidget
     public override init(widgetInfo: AgoraWidgetInfo) {
         self.dt = AgoraWhiteboardWidgetDT(extra: AgoraWhiteboardExtraInfo.fromExtraDic(widgetInfo.extraInfo),
@@ -58,19 +61,35 @@ struct InitCondition {
     }
     
     public override func onLoad() {
+        super.onLoad()
+        
         if let wbProperties = info.roomProperties?.toObj(AgoraWhiteboardPropExtra.self) {
             dt.propsExtra = wbProperties
         }
+        
+        log(.info,
+            content: "on load room properties:\(info.roomProperties?.description)")
+        
+        log(.info,
+            content: "on load local user properties:\(info.localUserProperties?.description)")
     }
     
     // MARK: widget callback
     public override func onLocalUserInfoUpdated(_ localUserInfo: AgoraWidgetUserInfo) {
+        super.onLocalUserInfoUpdated(localUserInfo)
+        
         dt.localUserInfo = localUserInfo
     }
     
     public override func onMessageReceived(_ message: String) {
+        super.onMessageReceived(message)
+        
         log(.info,
             content: "onMessageReceived:\(message)")
+        
+        if let keys = message.toRequestKeys() {
+            initServerAPI(keys: keys)
+        }
         
         if let signal = message.toBoardSignal() {
             switch signal {
@@ -99,24 +118,40 @@ struct InitCondition {
     
     public override func onWidgetRoomPropertiesUpdated(_ properties: [String : Any],
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
+        super.onWidgetRoomPropertiesUpdated(properties,
+                                            cause: cause,
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
+        
+        log(.info,
+            content: "onWidgetRoomPropertiesUpdated:\(properties)")
+        
         guard let wbProperties = properties.toObj(AgoraWhiteboardPropExtra.self) else {
             return
         }
-        log(.info,
-            content: "onWidgetRoomPropertiesUpdated:\(properties)")
+        
         dt.propsExtra = wbProperties
     }
     
     public override func onWidgetRoomPropertiesDeleted(_ properties: [String : Any]?,
                                                        cause: [String : Any]?,
-                                                       keyPaths: [String]) {
+                                                       keyPaths: [String],
+                                                       operatorUser: AgoraWidgetUserInfo?) {
+        super.onWidgetRoomPropertiesDeleted(properties,
+                                            cause: cause,
+                                            keyPaths: keyPaths,
+                                            operatorUser: operatorUser)
+        
         log(.info,
             content: "onWidgetRoomPropertiesDeleted:\(keyPaths)")
+        
         guard let wbProperties = properties?.toObj(AgoraWhiteboardPropExtra.self) else {
             dt.propsExtra = nil
             return
         }
+        
         dt.propsExtra = wbProperties
     }
     
@@ -186,6 +221,8 @@ extension AgoraWhiteboardWidget {
         WhiteDisplayerState.setCustomGlobalStateClass(AgoraWhiteboardGlobalState.self)
         
         initCondition.needInit = false
+        
+        registerApp()
     }
     
     func joinWhiteboard() {
@@ -201,6 +238,9 @@ extension AgoraWhiteboardWidget {
         } else {
             ratio = height / width
         }
+        
+        log(.info,
+            content: "ratio: \(ratio)")
         
         guard let sdk = whiteSDK,
               let roomConfig = dt.getWhiteRoomConfigToJoin(ratio: ratio) else {
@@ -238,6 +278,8 @@ extension AgoraWhiteboardWidget {
             
             self.dt.reconnectTime = 0
             self.initCondition.needJoin = false
+            
+            self.ifNeedSetWindowAttributes()
         }
     }
     
@@ -255,6 +297,27 @@ extension AgoraWhiteboardWidget {
     func getLocalCameraConfig() -> AgoraWhiteBoardCameraConfig? {
         let path = dt.scenePath.translatePath()
         return dt.localCameraConfigs[path]
+    }
+    
+    func registerApp() {
+        guard let bundle = Bundle.ag_compentsBundleNamed("AgoraWidgets"),
+              let javascriptPath = bundle.path(forResource: "app-talkative",
+                                               ofType: "js"),
+              let javascriptString = try? String(contentsOfFile: javascriptPath,
+                                                 encoding: .utf8) else {
+            return
+        }
+        let appParams = WhiteRegisterAppParams(javascriptString: javascriptString,
+                                               kind: "Talkative",
+                                               appOptions: [:],
+                                               variable: "NetlessAppTalkative.default")
+        whiteSDK?.registerApp(with: appParams,
+                              completionHandler: { [weak self] error in
+            if let error = error {
+                self?.log(.error,
+                          content: error.localizedDescription)
+            }
+        })
     }
     
     // MARK: - message handle
@@ -460,5 +523,81 @@ extension AgoraWhiteboardWidget {
             // 如果本地被授权，则是本地自己设置的摄像机视角
             dt.localCameraConfigs[room.sceneState.scenePath] = cameraState.toWidget()
         }
+    }
+    
+    func initServerAPI(keys: AgoraWidgetRequestKeys) {
+        serverAPI = AgoraWhiteBoardServerAPI(host: keys.host,
+                                             appId: keys.agoraAppId,
+                                             token: keys.token,
+                                             roomId: info.roomInfo.roomUuid,
+                                             userId: info.localUserInfo.userUuid,
+                                             logTube: self)
+    }
+    
+    func ifNeedSetWindowAttributes() {
+        guard let `serverAPI` = serverAPI,
+              let `room` = room,
+              let userProperties = info.localUserProperties,
+              let isNeedSet = userProperties["initial"] as? Bool,
+              isNeedSet == true else {
+            return
+        }
+        
+        serverAPI.getWindowAttributes { [weak self, weak room] (json) in
+            guard let `self` = self else {
+                return
+            }
+            
+            guard let `room` = room else {
+                self.log(info: "room is nil before set window manager with attributes",
+                         extra: nil)
+                return
+            }
+            
+            self.setWindowAttributes(room: room,
+                                     json: json)
+        } failure: { [weak self] error in
+            self?.log(.error,
+                      content: "getWindowAttributes error: \(error.localizedDescription)")
+            self?.ifNeedSetWindowAttributes()
+        }
+    }
+    
+    func setWindowAttributes(room: WhiteRoom,
+                             json: [String: Any]) {
+        if room.isWritable {
+            self.log(info: "set window manager with attributes",
+                     extra: nil)
+            
+            room.setWindowManagerWithAttributes(json)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                self?.setWindowAttributes(room: room,
+                                          json: json)
+            }
+        }
+    }
+}
+
+extension AgoraWhiteboardWidget: ArLogTube {
+    public func log(info: String,
+                    extra: String?) {
+        log(content: info,
+            extra: extra,
+            type: .info)
+    }
+    
+    public func log(warning: String,
+                    extra: String?) {
+        log(content: warning,
+            extra: extra,
+            type: .info)
+    }
+    
+    public func log(error: ArError,
+                    extra: String?) {
+        log(content: error.localizedDescription,
+            extra: extra,
+            type: .info)
     }
 }
