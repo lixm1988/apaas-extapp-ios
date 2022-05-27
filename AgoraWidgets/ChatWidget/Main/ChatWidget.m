@@ -25,6 +25,7 @@ static const NSString* kChatRoomId = @"chatroomId";
 @property (nonatomic, copy) NSString *password;
 @property (nonatomic, copy) NSString *orgName;
 @property (nonatomic, copy) NSString *appName;
+@property (nonatomic, copy) NSString *token;
 
 // room
 @property (nonatomic, copy) NSString *roomUuid;
@@ -44,6 +45,10 @@ static const NSString* kChatRoomId = @"chatroomId";
     }
     
     if (self.password.length <= 0) {
+        return false;
+    }
+    
+    if (self.token.length <= 0) {
         return false;
     }
     
@@ -215,6 +220,11 @@ static const NSString* kChatRoomId = @"chatroomId";
     NSString *appKey = nil;
     NSString *password = self.info.localUserProperties[@"userId"];
     NSString *orgName = nil;
+    NSString *token = nil;
+    
+    NSDictionary *keys = widgetExtraProps[@"keys"];
+    token = keys[@"host"];
+    
     // room
     NSString *chatRoomId = nil;
     NSString *roomUuid = self.info.roomInfo.roomUuid;
@@ -241,6 +251,10 @@ static const NSString* kChatRoomId = @"chatroomId";
     
     if (password.length > 0) {
         self.launchData.password = password;
+    }
+    
+    if (token.length > 0) {
+        self.launchData.token = token;
     }
     
     // room
