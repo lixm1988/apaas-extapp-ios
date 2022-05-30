@@ -322,7 +322,7 @@ static const NSString* kChatRoomId = @"chatroomId";
 {
     __weak typeof(self) weakself = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSArray<EMMessage*>* array = [weakself.chatManager msgArray];
+        NSArray<AgoraChatMessage*>* array = [weakself.chatManager msgArray];
         [self.chatView updateMsgs:array];
         if(array.count > 0) {
             [self sendMessage:@"chatWidgetDidReceiveMessage"];
@@ -339,7 +339,7 @@ static const NSString* kChatRoomId = @"chatroomId";
     
 }
 
-- (void)chatMessageDidSend:(EMMessage*)aInfo
+- (void)chatMessageDidSend:(AgoraChatMessage*)aInfo
 {
     [self.chatView updateMsgs:@[aInfo]];
 }
