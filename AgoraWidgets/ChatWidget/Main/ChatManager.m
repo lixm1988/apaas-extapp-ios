@@ -90,8 +90,8 @@ static BOOL isSDKInited = NO;
     }
     
     [[AgoraChatClient sharedClient] loginWithUsername:lowercaseName
-                                      password:weakself.password
-                                    completion:^(NSString *aUsername,
+                                                token:weakself.user.token
+                                           completion:^(NSString *aUsername,
                                                  AgoraChatError *aError) {
         if (aError == nil || aError.code == AgoraChatErrorUserAlreadyLoginSame) {
             weakself.isLogin = YES;
